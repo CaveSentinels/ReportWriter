@@ -1,21 +1,27 @@
 from django.contrib import admin
 from base.admin import BaseAdmin
-from models import Category, CWE, MisuseCase, UseCase, Report
+from django import forms
+from models import CWE, Report
 
 
-@admin.register(Category)
-class CategoryAdmin(BaseAdmin):
-    fields = ['name']
-    search_fields = ['name']
-
+# class ReportForm(forms.ModelForm):
+#     name = forms.CharField(label='Name', required=True)
+#     title = forms.CharField(label='Title', required=True)
+#     description = forms.CharField(label='Description', required=True)
+#
+#     class Meta:
+#         model = Report
+#         fields = ['name', 'title', 'description']
 
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
     fields = ['name', 'title', 'description']
-    search_fields = ['title', 'reliability']
+    search_fields = ['title']
 
-    def get_fields(self, request, obj=None):
-        if obj is None:
-            return ['title', 'description']
-        else:
-            return super(ReportAdmin, self).get_fields(request, obj)
+    # form = ReportForm
+
+    # def get_fields(self, request, obj=None):
+    #     if obj is None:
+    #         return ['title', 'description']
+    #     else:
+    #         return super(ReportAdmin, self).get_fields(request, obj)
