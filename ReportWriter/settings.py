@@ -38,6 +38,7 @@ SENDER_EMAIL = 'Report Writer'
 
 INSTALLED_APPS = (
     'base',
+    'report',
     'invitation',
     'register',
     'admin_lte',
