@@ -34,11 +34,19 @@ class Report(BaseModel):
     use_case_id = models.IntegerField(null=True, blank=True)
     use_case = models.TextField(null=True, blank=True)
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
-    promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
+
 
     class Meta:
         verbose_name = "Report"
         verbose_name_plural = "Reports"
+        # additional permissions
+        permissions = (
+            ('can_approve', 'Can approve Report'),
+            ('can_reject', 'Can reject Report'),
+            ('can_edit_all', 'Can edit all Report'),
+            ('can_view_all', 'Can view all Report'),
+        )
+
 
     def __unicode__(self):
         return self.name
