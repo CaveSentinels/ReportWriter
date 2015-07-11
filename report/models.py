@@ -51,6 +51,67 @@ class Report(BaseModel):
     def __unicode__(self):
         return self.name
 
+    def action_submit(self):
+        # This method change the status of the Report object to 'in_review'. This change
+        # is allowed only if the current status is 'draft'. If the current status is not
+        # 'draft', it raises the ValueError with appropriate message.
+        if self.status == 'draft':
+            self.status = 'in_review'
+            self.save()
+            # TODO Send email
+
+        else:
+            raise ValueError("You can only submit the report for review if it is 'draft' state")
+
+
+    def action_approve(self, reviewer=None):
+        """
+        This method change the status of the Report object to 'approved'.This change
+        is allowed only if the current status is 'in_review'. If the current status is not
+        'in_review', it raises the ValueError with appropriate message.
+        :param reviewer: User object that approved the Report
+        :raise ValueError: if status not in 'in-review'
+        """
+        if self.status == 'in_review':
+            self.status = 'approved'
+            self.reviewed_by = reviewer
+            self.save()
+            # TODO Send email
+
+        else:
+            raise ValueError("In order to approve an Report, it should be in 'in-review' state")
+
+    def action_save_in_draft(self):
+        # This method change the status of the MUOContainer object to 'draft'. This change
+        # is allowed only if the current status is 'rejected' or 'in_review'. If the current
+        # status is not 'rejected' or 'in_review', it raises the ValueError with
+        # appropriate message.
+        if self.status == 'rejected' or self.status == 'in_review':
+            self.status = 'draft'
+            self.save()
+        else:
+            raise ValueError("A report can only be moved back to draft state if it is either rejected or 'in-review' state")
+
+    def action_reject(self, reject_reason, reviewer=None):
+        """
+        This method change the status of the MUOContainer object to 'rejected' and the removes
+        the relationship between all the use cases of the muo container and the misuse case.
+        This change is allowed only if the current status is 'in_review' or 'approved'.
+        If the current status is not 'in-review' or 'approved', it raises the ValueError
+        with appropriate message.
+        :param reject_reason: Message that contain the rejection reason provided by the reviewer
+        :param reviewer: User object that approved the MUO
+        :raise ValueError: if status not in 'in-review'
+        """
+        if self.status == 'in_review' or self.status == 'approved':
+            self.status = 'rejected'
+            self.reject_reason = reject_reason
+            self.reviewed_by = reviewer
+            self.save()
+            # TODO Send email
+
+        else:
+            raise ValueError("In order to approve an Report, it should be in 'in-review' state")
 
 @receiver(post_save, sender=Report, dispatch_uid='report_post_save_signal')
 def post_save_report(sender, instance, created, using, **kwargs):

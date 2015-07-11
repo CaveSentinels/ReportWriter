@@ -35,35 +35,35 @@ def report_submit_row(context):
                                   (model_object is None or
                                   (model_object and
                                   model_object.status == 'draft' and
-                                  (user_object == model_object.created_by or user_object.has_perm('muo.can_edit_all')))),
+                                  (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')))),
         'show_save': show_save and
                      (model_object is None or
                      (model_object and
                      model_object.status == 'draft' and
-                     (user_object == model_object.created_by or user_object.has_perm('muo.can_edit_all')))),
+                     (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')))),
 
 
-        # Show submit for review button only to the creator of the muo and if its in draft state
+        # Show submit for review button only to the creator of the report  and if its in draft state
         'show_submit_for_review': model_object and
                                   model_object.status == 'draft' and
-                                  (user_object == model_object.created_by or user_object.has_perm('muo.can_edit_all')),
+                                  (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')),
 
-        # Show edit button only to the creator of the muo and if its either in in_review or rejected state
+        # Show edit button only to the creator of the report and if its either in in_review or rejected state
         'show_edit': model_object and
                      model_object.status in ('in_review', 'rejected') and
-                     (user_object == model_object.created_by or user_object.has_perm('muo.can_edit_all')),
+                     (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')),
 
         # Show approve button only to the user if he/she has the can_approve permission and the state of
-        # muo is in in_review
+        # report is in in_review
         'show_approve': model_object and
                         model_object.status == 'in_review' and
                         user_object.has_perm('muo.can_approve'),
 
         # Show reject button only to the user if he/she has the can_reject permission and the state of the
-        # muo is in in_review or approved state
+        # report is in in_review or approved state
         'show_reject': model_object and
                        model_object.status in ('in_review', 'approved') and
-                       user_object.has_perm('muo.can_reject'),
+                       user_object.has_perm('report.can_reject'),
 
 
     })
