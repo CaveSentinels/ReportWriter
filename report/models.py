@@ -34,6 +34,7 @@ class Report(BaseModel):
     use_case_id = models.IntegerField(null=True, blank=True)
     use_case = models.TextField(null=True, blank=True)
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
+    promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
 
 
     class Meta:
@@ -94,13 +95,12 @@ class Report(BaseModel):
 
     def action_reject(self, reject_reason, reviewer=None):
         """
-        This method change the status of the MUOContainer object to 'rejected' and the removes
-        the relationship between all the use cases of the muo container and the misuse case.
+        This method change the status of the report object to 'rejected'
         This change is allowed only if the current status is 'in_review' or 'approved'.
         If the current status is not 'in-review' or 'approved', it raises the ValueError
         with appropriate message.
         :param reject_reason: Message that contain the rejection reason provided by the reviewer
-        :param reviewer: User object that approved the MUO
+        :param reviewer: User object that approved the Report
         :raise ValueError: if status not in 'in-review'
         """
         if self.status == 'in_review' or self.status == 'approved':

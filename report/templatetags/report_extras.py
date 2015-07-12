@@ -57,7 +57,7 @@ def report_submit_row(context):
         # report is in in_review
         'show_approve': model_object and
                         model_object.status == 'in_review' and
-                        user_object.has_perm('muo.can_approve'),
+                        user_object.has_perm('report.can_approve'),
 
         # Show reject button only to the user if he/she has the can_reject permission and the state of the
         # report is in in_review or approved state
