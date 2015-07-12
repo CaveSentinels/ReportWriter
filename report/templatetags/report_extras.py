@@ -65,6 +65,12 @@ def report_submit_row(context):
                        model_object.status in ('in_review', 'approved') and
                        user_object.has_perm('report.can_reject'),
 
+        'show_delete_link': show_delete_link and
+                            (model_object is None or
+                            (model_object and
+                            model_object.status in ('draft', 'rejected') and
+                            (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')))),
+
 
     })
 
