@@ -1,0 +1,194 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+{% load staticfiles %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+<script src={% static "dist/js/select2.min.js" %}></script>
+    <script src={% static "report/report_change_form.js" %}></script>>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+    <link href={% static "dist/css/select2.min.css" %} rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="{% static 'report/report_change_form.css' %}" />
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+    <form class="form-horizontal" enctype="multipart/form-data" action method="post" id="report" novalidate>
+        {% csrf_token %}
+        <div id="content-main" class="muo-search-container">
+            <div class="fieldset-box col-md-12">
+                <div class="box box-primary">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>R0001</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">Title:</label>
+                            {% if for_review %}
+                                <p> This is the title of the report </p>
+                            {% else %}
+                                <input type="text" class="form-control" id="title">
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <textarea class="form-control" rows="7" id="description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="cwe">CWEs:</label>
+                            <a href="#cwe-search" class="btn btn-xs">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </a>
+                            <div class="form-group" id="cwe-custom-search">
+
+                            </div>
+                            <div id="cwe-selection">
+                                <select class="cwe-select-multiple" id="cwe" multiple="multiple" style="width:87%"></select>
+                                <button type="button" class="btn btn-primary btn-md" id="cwe-suggestion-button" style="float:right; width:12%">Suggest CWEs</button>
+                            </div>
+                            {# cwe-selection is to be loaded from cwe_suggestion.html#}
+                        </div>
+                        <div class="form-group" id="muo-container">
+                            <div class="slim-scroll-div"></div>
+                            {# slim-scroll-div is to loaded from misusecase.html after the ajax response #}
+                            <div class="fat-scroll-div"></div>
+                            {# fat-scroll-div is to loaded from usecase.html after the ajax response #}
+
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary btn-md pull-right" id="muo-select" style="margin-top: 4px">Select</button>
+                                <button type="button" class="btn btn-danger btn-md" id="muo-close" style="float: right; margin-right:1%; margin-top: 4px">Close</button>
+                            </div>
+                        </div>
+                        <div class="form-group" id="muo-container-option-buttons">
+                            <button type="button" class="btn btn-primary btn-default pull-right" id="misusecase-suggestion">Suggest Misuse Cases and Use Cases</button>
+                            <button type="button" class="btn btn-primary btn-default pull-right" id="misusecase-custom">Write my own Misuse Case and Use Case</button>
+                        </div>
+                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px">
+                            <div class="form-group" id="misuse-case">
+                                <label style="margin-bottom: 0px;">Misuse Case:</label>
+                                <hr style="margin-top: 5px">
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-title">Title:</label>#}
+{#                                    <input type="text" class="form-control" id="misusecase-title" placeholder="Ex: Authentication Bypass">#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-primary-actor">Primary Actor(s):</label>#}
+{#                                    <input type="text" class="form-control" id="misusecase-primary-actor" placeholder="Ex: Malicious User">#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-secondary-actor">Secondary Actor(s):</label>#}
+{#                                    <input type="text" class="form-control" id="misusecase-secondary-actor" placeholder="Ex: Login Component">#}
+{#                                </div>#}
+                                <div class="form-group">
+                                    <label for="misusecase-description">Brief Description:</label>
+                                    <textarea class="form-control" rows="7" id="misusecase-description" placeholder="Brief summary about the Misuse Case"></textarea>
+                                </div>
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-precondition">Precondition(s):</label>#}
+{#                                    <textarea class="form-control" rows="7" id="misusecase-precondition" placeholder="The state of the system before the trigger event"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-flow-of-events">Flow of Events:</label>#}
+{#                                    <textarea class="form-control" rows="7" id="misusecase-flow-of-events" placeholder="Ordered steps in which events are triggered"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-postcondition">Postcondition(s):</label>#}
+{#                                    <textarea class="form-control" rows="7" id="misusecase-postcondition" placeholder="The state of the system after the execution of the events"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-assumptions">Assumptions:</label>#}
+{#                                    <textarea class="form-control" rows="3" id="misusecase-assumptions" placeholder="Assumptions for the Misuse Case executions (if any)"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="misusecase-sources">Sources:</label>#}
+{#                                    <textarea class="form-control" rows="3" id="misusecase-sources" placeholder="Source(s) or additional references related to the Misuse Case (if any)"></textarea>#}
+{#                                </div>#}
+                            </div>
+                            <div class="form-group" id="use-case">
+                                <label style="margin-bottom: 0px;">Use Case and Overlooked Security Requirements:</label>
+                                <hr style="margin-top: 5px">
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-title">Title:</label>#}
+{#                                    <input type="text" class="form-control" id="usecase-title" placeholder="Ex: Preventing Authentication Bypass">#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-primary-actor">Primary Actor(s):</label>#}
+{#                                    <input type="text" class="form-control" id="usecase-primary-actor" placeholder="Ex: Malicious User">#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-secondary-actor">Secondary Actor(s):</label>#}
+{#                                    <input type="text" class="form-control" id="usecase-secondary-actor" placeholder="Ex: Login Component">#}
+{#                                </div>#}
+                                <div class="form-group">
+                                    <label for="usecase-description">Brief Description:</label>
+                                    <textarea class="form-control" rows="7" id="usecase-description" placeholder="Brief summary about the Use Case"></textarea>
+                                </div>
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-precondition">Precondition(s):</label>#}
+{#                                    <textarea class="form-control" rows="7" id="usecase-precondition" placeholder="The state of the system before the trigger event"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-flow-of-events">Flow of Events:</label>#}
+{#                                    <textarea class="form-control" rows="7" id="usecase-flow-of-events" placeholder="Ordered steps in which events are triggered"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-postcondition">Postcondition(s):</label>#}
+{#                                    <textarea class="form-control" rows="7" id="usecase-postcondition" placeholder="The state of the system after the execution of the events"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-assumptions">Assumptions:</label>#}
+{#                                    <textarea class="form-control" rows="3" id="usecase-assumptions" placeholder="Assumptions for the Use Case executions (if any)"></textarea>#}
+{#                                </div>#}
+{#                                <div class="form-group">#}
+{#                                    <label for="usecase-sources">Sources:</label>#}
+{#                                    <textarea class="form-control" rows="3" id="usecase-sources" placeholder="Source(s) or additional references related to the Use Case (if any)"></textarea>#}
+{#                                </div>#}
+                                <div class="form-group" id="osr">
+{#                                    <label for="osr-pattern">Requirements Pattern:</label>#}
+{#                                    <div id="osr-pattern-selection" style="margin-bottom: 10px">#}
+{#                                        <label class="radio-inline"><input type="radio" name="osr-pattern" value="1">Ubiquitous</label>#}
+{#                                        <label class="radio-inline"><input type="radio" name="osr-pattern" value="2">Event-Driven</label>#}
+{#                                        <label class="radio-inline"><input type="radio" name="osr-pattern" value="3">Unwanted Behavior</label>#}
+{#                                        <label class="radio-inline"><input type="radio" name="osr-pattern" value="4">State Driven</label>#}
+{#                                    </div>#}
+                                    <div>
+                                        <textarea class="form-control" rows="7" id="osr-description" placeholder="Overlooked Security Requirement"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {# Show the submit buttons #}
+    {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+
+{% endblock %}
+
+
+

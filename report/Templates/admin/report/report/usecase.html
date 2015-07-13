@@ -1,0 +1,19 @@
+{% load static %}
+
+<div class="fat-scroll-div">
+    <label class="muo-title-header" for="description">Use Cases & Overlooked Security Requirements</label>
+    {% for usecase in use_cases %}
+        <div class="use-case-container" data-value="{{ usecase.id }}">
+            <div class="use-case-header">
+                <label class="pull-left">{{ usecase.name }}</label>
+                <label id="muo-date-header">{{ usecase.created_at }}</label>
+            </div>
+            <div class="use-case-div">
+                {{ usecase.description }}
+            </div>
+            <div class="osr-div">
+                {{ usecase.osr }}
+            </div>
+        </div>
+    {% endfor %}
+</div>
