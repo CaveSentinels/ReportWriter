@@ -11,7 +11,8 @@ class UserProfileAdmin(BaseAdmin):
               'notify_report_commented',
               'notify_report_submitted_for_review',
               'notify_report_saved_enhancedCWEApplication',
-              'notify_report_reviewed'
+              'notify_report_reviewed',
+              'notify_report_inappropriate'
               ]
 
 
