@@ -24,7 +24,7 @@ class rest_api:
         :return: A dictionary containing the following three key-values:
          success: A boolean value representing whether request to the server was successful or not
          msg: A string containing a descriptive message about what happened with the request
-         obj: Any additional object if some data is to be returned to the caller
+         obj: Any additional object (generally the JSON object) if some data is to be returned to the caller.
         '''
         success = False
         msg = None
@@ -32,19 +32,21 @@ class rest_api:
         if response.status_code == requests.codes.unauthorized:
             # Authentication Failure
             msg = 'Authentication Failure. All requests must be authenticated with a valid API Key. ' \
-                  'Please contact the system administrator'
+                  'Please contact the system administrator. Additional error details are: %s' % response.content
         elif response.status_code == requests.codes.bad:
             # Bad Request
-            msg = 'There is something wrong in the request. Please check all your inputs correctly.'
+            msg = 'There is something wrong in the request. Please check all your inputs correctly.' \
+                  'Additional error details are: %s' % response.content
         elif response.status_code == requests.codes.server_error:
             # Server Error occurred.
-            msg = 'Some error has occured on the server. Please try after some time!'
+            msg = 'Some error has occurred on the server. Please try after some time!' \
+                  'Additional error details are: %s' % response.content
         elif response.status_code == requests.codes.ok:
             # Successful
             success = True
             msg = 'Success'
-            if response.headers.get('content-type'):
-                # If the response id of type JSON, set the obj
+            if response.headers.get('content-type') == 'application/json':
+                # If the response is of type JSON, set the obj
                 obj = response.json()
 
         return {'success': success, 'msg': msg, 'obj': obj}
