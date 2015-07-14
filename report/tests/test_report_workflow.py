@@ -135,7 +135,7 @@ class TestReport(TestCase):
         """
         This is a positive test case
         'action_reject' should set the status to 'rejected' when called on a Report
-        object with status 'in_review'.
+        object with status 'approved'.
         """
 
         report = self.get_report('approved')

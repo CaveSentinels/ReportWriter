@@ -53,9 +53,11 @@ class Report(BaseModel):
         return self.name
 
     def action_submit(self):
-        # This method change the status of the Report object to 'in_review'. This change
+        """
+        This method change the status of the Report object to 'in_review'. This change
         # is allowed only if the current status is 'draft'. If the current status is not
         # 'draft', it raises the ValueError with appropriate message.
+        """
         if self.status == 'draft':
             self.status = 'in_review'
             self.save()
@@ -83,10 +85,12 @@ class Report(BaseModel):
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
 
     def action_save_in_draft(self):
-        # This method change the status of the MUOContainer object to 'draft'. This change
+        """
+        This method change the status of the MUOContainer object to 'draft'. This change
         # is allowed only if the current status is 'rejected' or 'in_review'. If the current
         # status is not 'rejected' or 'in_review', it raises the ValueError with
         # appropriate message.
+        """
         if self.status == 'rejected' or self.status == 'in_review':
             self.status = 'draft'
             self.save()
