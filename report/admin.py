@@ -1,14 +1,20 @@
+from crispy_forms.bootstrap import UneditableField
 from django.contrib import admin
+from django.forms import ModelForm
 from base.admin import BaseAdmin
 from models import CWE, Report
 from django.conf.urls import url
 from django.http import Http404
 from django.template.response import TemplateResponse
+from django.utils.text import capfirst
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Div
 from ReportWriter import RESTAPI
 
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    fields = ['name', 'title', 'description', 'cwes', 'misuse_case', 'use_case']
+    # fields = ['name', 'title', 'description', 'cwes', 'misuse_case', 'use_case']
+    # readonly_fields = ['name']
     search_fields = ['title']
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):

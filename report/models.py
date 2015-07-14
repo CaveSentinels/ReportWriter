@@ -25,14 +25,32 @@ class CWE(BaseModel):
 
 
 class Report(BaseModel):
-    name = models.CharField(max_length=16, null=True, blank=True, db_index=True, default="-")
+    name = models.CharField(max_length=16, null=True, blank=True, db_index=True, default="/")
     title = models.CharField(max_length=128, db_index=True)
     description = models.TextField()
     cwes = models.ManyToManyField(CWE)
+
     misuse_case_id = models.IntegerField(null=True, blank=True)
-    misuse_case = models.TextField(null=True, blank=True)
+    misuse_case_description = models.TextField(null=True, blank=True, verbose_name="Description")
+    misuse_case_primary_actor = models.CharField(max_length=256, null=True, blank=True, verbose_name="Primary actor")
+    misuse_case_secondary_actor = models.CharField(max_length=256, null=True, blank=True, verbose_name="Secondary actor")
+    misuse_case_precondition = models.TextField(null=True, blank=True, verbose_name="Pre-condition")
+    misuse_case_flow_of_events = models.TextField(null=True, blank=True, verbose_name="Flow of events")
+    misuse_case_postcondition = models.TextField(null=True, blank=True, verbose_name="Post-condition")
+    misuse_case_assumption = models.TextField(null=True, blank=True, verbose_name="Assumption")
+    misuse_case_source = models.TextField(null=True, blank=True, verbose_name="Source")
+
     use_case_id = models.IntegerField(null=True, blank=True)
-    use_case = models.TextField(null=True, blank=True)
+    use_case_description = models.TextField(null=True, blank=True, verbose_name="Description")
+    use_case_primary_actor = models.CharField(max_length=256, null=True, blank=True, verbose_name="Primary actor")
+    use_case_secondary_actor = models.CharField(max_length=256, null=True, blank=True, verbose_name="Secondary actor")
+    use_case_precondition = models.TextField(null=True, blank=True, verbose_name="Pre-condition")
+    use_case_flow_of_events = models.TextField(null=True, blank=True, verbose_name="Flow of events")
+    use_case_postcondition = models.TextField(null=True, blank=True, verbose_name="Post-condition")
+    use_case_assumption = models.TextField(null=True, blank=True, verbose_name="Assumption")
+    use_case_source = models.TextField(null=True, blank=True, verbose_name="Source")
+
+    osr = models.TextField(null=True, blank=True, verbose_name="Overlooked Security Requirement")
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
     promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
 

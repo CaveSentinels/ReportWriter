@@ -19,7 +19,7 @@ DEBUG = True
 
 
 INSTALLED_APPS = settings.INSTALLED_APPS + (
-    # 'debug_toolbar',
+    'debug_toolbar',
 )
 
 DATABASES = {
