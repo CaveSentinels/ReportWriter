@@ -1,6 +1,6 @@
 ''' This file declares all the constants being used to send the email
 '''
-SENDER_EMAIL = "enhancedcwe@gmail.com"
+SENDER_EMAIL = "reportwritingapplication@gmail.com"
 REPORT_ACCEPTED_SUBJECT = "Your Report has been accepted"
 REPORT_APPROVED_SUBJECT = "A report has been reviewed and approved"
 ACCEPTED = "accepted"

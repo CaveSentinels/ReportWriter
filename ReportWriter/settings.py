@@ -61,9 +61,9 @@ INSTALLED_APPS = (
 # Email settings
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'enhancedcwe'
+EMAIL_HOST_USER = 'reportwritingapplication'
 EMAIL_PORT = 587
-EMAIL_HOST_PASSWORD = 'enhancedcwe_masre'
+EMAIL_HOST_PASSWORD = 'reportwriting_masre'
 
 
 # START: allauth settings
