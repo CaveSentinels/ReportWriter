@@ -2,6 +2,7 @@ from django.db import models
 from base.models import BaseModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from signals import *
 
 
 STATUS = [('draft', 'Draft'),
@@ -61,7 +62,8 @@ class Report(BaseModel):
         if self.status == 'draft':
             self.status = 'in_review'
             self.save()
-            # TODO Send email
+            # Send email
+            report_submitted_review.send(sender=self, instance=self)
 
         else:
             raise ValueError("You can only submit the report for review if it is 'draft' state")
@@ -79,7 +81,8 @@ class Report(BaseModel):
             self.status = 'approved'
             self.reviewed_by = reviewer
             self.save()
-            # TODO Send email
+            # Send email
+            report_accepted.send(sender=self, instance=self)
 
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
@@ -112,7 +115,8 @@ class Report(BaseModel):
             self.reject_reason = reject_reason
             self.reviewed_by = reviewer
             self.save()
-            # TODO Send email
+            # Send email
+            report_rejected.send(sender=self, instance=self)
 
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
