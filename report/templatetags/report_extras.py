@@ -11,7 +11,7 @@ from django import template
 register = template.Library()
 
 
-@register.inclusion_tag('admin/report/report_submit_line.html', takes_context=True)
+@register.inclusion_tag('admin/report/report/report_submit_line.html', takes_context=True)
 def report_submit_row(context):
     ctx = original_submit_row(context)
 

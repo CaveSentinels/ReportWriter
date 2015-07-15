@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'autocomplete_light',
     'captcha',
     'frontpage',
+    'widget_tweaks',
     'crispy_forms',
     'django.contrib.sites',
     'allauth',
@@ -53,7 +54,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'widget_tweaks',
     'emailer',
     'user_profile',
 )

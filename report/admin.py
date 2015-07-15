@@ -1,7 +1,15 @@
+from crispy_forms.bootstrap import UneditableField
 from django.contrib import admin
+from django.forms import ModelForm
 from base.admin import BaseAdmin
-from django import forms
 from models import CWE, Report
+from django.conf.urls import url
+from django.http import Http404
+from django.template.response import TemplateResponse
+from django.utils.text import capfirst
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Div
+from ReportWriter.rest_api import rest_api
 from django.contrib import admin
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -12,33 +20,106 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
-
-
-
-# class ReportForm(forms.ModelForm):
-#     name = forms.CharField(label='Name', required=True)
-#     title = forms.CharField(label='Title', required=True)
-#     description = forms.CharField(label='Description', required=True)
-#
-#     class Meta:
-#         model = Report
-#         fields = ['name', 'title', 'description']
-
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    fields = ['name', 'title', 'description']
-    search_fields = ['title','status']
-    list_display = ['title', 'status']
-    readonly_fields = ['name', 'status']
+    exclude = ['created_at', 'created_by', 'modified_by']
+    search_fields = ['title']
+    list_display = ['name', 'status']
+
+    def is_readonly(self, obj, user):
+        '''
+        returns a boolean value indicating whether change form should be readonly or not. Change form is always readonly
+        except when it is in draft state and the current user is the author of the report or the user has the
+        'can_edit_all' permission
+        '''
+        return obj.status == 'draft' and (user == obj.created_by or user.has_perm('report.can_edit_all'))
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        # Override changeform_view to decide if the if the form should be read only or not. Also pass the read only
+        # variable in the context
+
+        extra_context = extra_context or {}
+
+        if object_id is not None:
+            # Change form. Check if the change form should be editable or readonly
+
+            # Get the current model instance
+            current_model_instance = Report.objects.get(pk=object_id)
+
+            # Get the current User
+            current_user = request.user
+
+            extra_context['read_only'] = self.is_readonly(current_model_instance, current_user)
+
+        return super(ReportAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
 
-    # form = ReportForm
+    def get_urls(self):
+        urls = super(ReportAdmin, self).get_urls()
 
-    # def get_fields(self, request, obj=None):
-    #     if obj is None:
-    #         return ['title', 'description']
-    #     else:
-    #         return super(ReportAdmin, self).get_fields(request, obj)
+        additional_urls = [
+            url(r'report_report_cwes/$', self.admin_site.admin_view(self.cwe_view)),
+            url(r'report_report_misusecases/$', self.admin_site.admin_view(self.misusecases_view)),
+            url(r'report_report_usecases/$', self.admin_site.admin_view(self.usecases_view)),
+        ]
+
+        return additional_urls + urls
+
+
+    def cwe_view(self, request):
+        if request.method != 'POST':
+            raise Http404("Invalid access using GET request!")
+
+        if request.description is None or request.description == '':
+            # Raise an exception from here
+            pass
+        else:
+            # Get the suggested CWEs for the description from Enhanced CWE application
+            cwes = rest_api.get_cwes_for_description('Authentication Bypass')
+
+        # cwes = [{'id': '1', 'code': '123', 'name': 'Authentication Bypass by Alternate Name'},
+        #         {'id': '2', 'code': '456', 'name': 'Authentication Bypass by Spoofing'},
+        #         {'id': '3', 'code': '789', 'name': 'Buffer Overflow'},
+        #         {'id': '4', 'code': '987', 'name': 'Authentication Bypass by Wrong Name'},
+        #         {'id': '5', 'code': '654', 'name': 'Invalid File Traversal'}]
+
+        context = {'cwes': cwes}
+        return TemplateResponse(request, "admin/report/report/cwe_suggestion.html", context)
+
+    def misusecases_view(self, request):
+        if request.method != 'POST':
+            raise Http404("Invalid access using GET request!")
+
+        misuse_cases = rest_api.get_misuse_cases('123,345,567')
+
+        if misuse_cases['success'] is False:
+            # There was some error and the REST call was not successful
+            # TODO Handle Error
+            pass
+
+        # Set the context
+        context = {'misuse_cases': misuse_cases['obj']}
+
+        return TemplateResponse(request, "admin/report/report/misusecase.html", context)
+
+
+    def usecases_view(self, request):
+        if request.method != 'POST':
+            raise Http404("Invalid access using GET request!")
+
+        selected_misuse_case_id = request.POST['misuse_case_id']
+
+        use_cases = rest_api.get_use_cases(selected_misuse_case_id)
+
+        if use_cases['success'] is False:
+            # There was some error and the REST call was not successful
+            # TODO Handle Error
+            pass
+
+        context = {'use_cases': use_cases['obj']}
+
+        return TemplateResponse(request, "admin/report/report/usecase.html", context)
+
 
     def response_change(self, request, obj, *args, **kwargs):
         '''
@@ -97,4 +178,3 @@ class ReportAdmin(BaseAdmin):
 
         self.message_user(request, msg, messages.SUCCESS)
         return HttpResponseRedirect(redirect_url)
-
