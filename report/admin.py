@@ -22,17 +22,34 @@ from django.core.exceptions import ObjectDoesNotExist
 
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    exclude = ['created_at', 'created_by', 'modified_by', 'status']
+    exclude = ['created_at', 'created_by', 'modified_by']
     search_fields = ['title']
-    list_display = ['title', 'status']
+    list_display = ['name', 'status']
+
+    def is_readonly(self, obj, user):
+        '''
+        returns a boolean value indicating whether change form should be readonly or not. Change form is always readonly
+        except when it is in draft state and the current user is the author of the report or the user has the
+        'can_edit_all' permission
+        '''
+        return obj.status == 'draft' and (user == obj.created_by or user.has_perm('report.can_edit_all'))
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        # Override changeform_view to decide if the if the form should be read only or not. Also pass the read only
+        # variable in the context
+
         extra_context = extra_context or {}
-        extra_context['for_review'] = True
 
         if object_id is not None:
-            # Change form
-            extra_context['for_review'] = True
+            # Change form. Check if the change form should be editable or readonly
+
+            # Get the current model instance
+            current_model_instance = Report.objects.get(pk=object_id)
+
+            # Get the current User
+            current_user = request.user
+
+            extra_context['read_only'] = self.is_readonly(current_model_instance, current_user)
 
         return super(ReportAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
@@ -47,6 +64,7 @@ class ReportAdmin(BaseAdmin):
         ]
 
         return additional_urls + urls
+
 
     def cwe_view(self, request):
         if request.method != 'POST':

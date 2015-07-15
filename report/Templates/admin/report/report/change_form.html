@@ -1,5 +1,6 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_static crispy_forms_tags widget_tweaks %}
+{% load report_extras %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -25,11 +26,14 @@
                 <div class="box-body">
 
                     <div class="form-group">
-                        {{ form.name.label_tag }}
-                        <p>{{ form.name.contents }}</p>
-
-                        {{ form.status.label_tag }}
-                        {{ form.status.contents }}
+                        <div class="col-md-6">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.status.label_tag }}
+                            {{ form.status }}
+                        </div>
                     </div>
 
 
@@ -94,7 +98,7 @@
 {#                                {{ form.misuse_case_postcondition|attr:"rows:2"|as_crispy_field }}#}
 {#                                {{ form.misuse_case_assumption|attr:"rows:2"|as_crispy_field }}#}
 {#                                {{ form.misuse_case_source|attr:"rows:1"|as_crispy_field }}#}
-{#                            </div>#}
+                            </div>
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Use Case:</label>
@@ -122,3 +126,27 @@
     {% endwith %}
 {% endblock %}
 
+
+{# Priting the rejection reason at the top of the form#}
+{% block form_top %}
+{% if original.status == 'rejected' %}
+    {# if in rejected status, print in error alert#}
+    <div class="alert alert-error"><strong>
+        This Report has been rejected
+        {% if original.reject_reason %}
+            : {{ original.reject_reason }}
+        {% endif %}
+    </strong></div>
+
+{% elif original.reject_reason and original.status != 'rejected' and original.status != 'approved' %}
+    {# if in approved state, don't print reject message. Else, print in warning alert#}
+    <div class="alert alert-warning">
+        This Report used to be rejected: {{ original.reject_reason }}
+    </div>
+{% endif %}
+{% endblock %}
+
+
+{% block submit_buttons_bottom %}
+    {% report_submit_row %}
+{% endblock %}
