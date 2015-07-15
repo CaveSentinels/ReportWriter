@@ -2,7 +2,7 @@ from django.core import mail
 from django.test import TestCase
 
 class EmailTest(TestCase):
-    # TODO: Create a new email address
+    # Check if the email is being sent or not
     def test_send_email(self):
         # Send message.
         mail.send_mail('Subject here', 'Here is the message.',

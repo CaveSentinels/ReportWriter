@@ -53,7 +53,7 @@ def on_report_inappropriate(sender, instance, **kwargs):
         action = constants.INAPPROPRIATE
         notify_owner(instance, subject, action)
 
-
+# This method will send an email when the Report is submitted for review. It will notify the reviewers
 @receiver(report_submitted_review)
 def on_report_submitted_for_review(sender,instance, **kwargs):
     report_type = ContentType.objects.get(app_label='report', model='report')

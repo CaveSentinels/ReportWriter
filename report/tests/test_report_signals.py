@@ -13,7 +13,7 @@ class ReportSignalsTest(TestCase):
         report.save()
         self.report = report
 
-    # This is to test to check if signals are generated when muo gets accepted
+    # This is to test to check if signals are generated when report gets accepted
     @patch('report.signals.report_accepted.send')
     def test_report_accepted_signal_triggered(self, mock):
         self.report.status = 'in_review'
@@ -23,7 +23,7 @@ class ReportSignalsTest(TestCase):
         # Check that your signal was called only once.
         self.assertEqual(mock.call_count, 1)
 
-    # This is to test to check if signals are generated when muo gets rejected
+    # This is to test to check if signals are generated when report gets rejected
     @patch('report.signals.report_rejected.send')
     def test_report_rejected_signal_triggered(self, mock):
         self.report.status = 'in_review'
@@ -33,6 +33,7 @@ class ReportSignalsTest(TestCase):
         # Check that the signal was called only once.
         self.assertEqual(mock.call_count, 1)
 
+    # This is to test to check if signals are generated when report is submitted for review
     @patch('report.signals.report_submitted_review.send')
     def test_report_submitted_for_review_signal_triggered(self, mock):
         self.report.status = 'draft'
