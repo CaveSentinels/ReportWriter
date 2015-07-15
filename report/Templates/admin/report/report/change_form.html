@@ -27,6 +27,9 @@
                     <div class="form-group">
                         {{ form.name.label_tag }}
                         <p>{{ form.name.contents }}</p>
+
+                        {{ form.status.label_tag }}
+                        {{ form.status.contents }}
                     </div>
 
 
@@ -45,7 +48,7 @@
                         </div>
                         <div id="cwe-selection">
                             <select class="cwe-select-multiple" id="cwe" multiple="multiple" style="width:87%"></select>
-                            <button type="button" class="btn btn-primary btn-md" id="cwe-suggestion-button"
+                            <button type="button" class="btn btn-success btn-md" id="cwe-suggestion-button"
                                     style="float:right; width:12%">Suggest CWEs
                             </button>
                         </div>
@@ -53,14 +56,14 @@
                     </div>
 
                     <div class="muo-search-container">
-                        <div class="form-group" id="muo-container">
+                        <div class="form-group" id="muo-container" hidden>
                             <div class="slim-scroll-div"></div>
                             {# slim-scroll-div is to loaded from misusecase.html after the ajax response #}
                             <div class="fat-scroll-div"></div>
                             {# fat-scroll-div is to loaded from usecase.html after the ajax response #}
 
                             <div class="form-group">
-                                <button type="button" class="btn btn-primary btn-md pull-right" id="muo-select"
+                                <button type="button" class="btn btn-success btn-md pull-right" id="muo-select"
                                         style="margin-top: 4px">Select
                                 </button>
                                 <button type="button" class="btn btn-danger btn-md" id="muo-close"
@@ -70,40 +73,40 @@
                         </div>
 
                         <div class="form-group" id="muo-container-option-buttons">
-                            <button type="button" class="btn btn-primary pull-right" id="misusecase-suggestion">Suggest
+                            <button type="button" class="btn btn-info pull-right" id="misusecase-suggestion">Suggest
                                 Misuse Cases and Use Cases
                             </button>
-                            <button type="button" class="btn btn-primary pull-right" style="margin: 0 10px"
+                            <button type="button" class="btn btn-info pull-right" style="margin: 0 10px"
                                     id="misusecase-custom">Write my own Misuse Case and Use Case
                             </button>
                         </div>
 
-                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px">
+                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px" hidden>
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Misuse Case:</label>
                                 <hr style="margin-top: 5px">
                                 {{ form.misuse_case_description|attr:"rows:7"|as_crispy_field }}
-                                {{ form.misuse_case_primary_actor|as_crispy_field }}
-                                {{ form.misuse_case_secondary_actor|as_crispy_field }}
-                                {{ form.misuse_case_precondition|attr:"rows:2"|as_crispy_field }}
-                                {{ form.misuse_case_flow_of_events|attr:"rows:3"|as_crispy_field }}
-                                {{ form.misuse_case_postcondition|attr:"rows:2"|as_crispy_field }}
-                                {{ form.misuse_case_assumption|attr:"rows:2"|as_crispy_field }}
-                                {{ form.misuse_case_source|attr:"rows:1"|as_crispy_field }}
-                            </div>
+{#                                {{ form.misuse_case_primary_actor|as_crispy_field }}#}
+{#                                {{ form.misuse_case_secondary_actor|as_crispy_field }}#}
+{#                                {{ form.misuse_case_precondition|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.misuse_case_flow_of_events|attr:"rows:3"|as_crispy_field }}#}
+{#                                {{ form.misuse_case_postcondition|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.misuse_case_assumption|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.misuse_case_source|attr:"rows:1"|as_crispy_field }}#}
+{#                            </div>#}
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Use Case:</label>
                                 <hr style="margin-top: 5px">
                                 {{ form.use_case_description|attr:"rows:7"|as_crispy_field }}
-                                {{ form.use_case_primary_actor|as_crispy_field }}
-                                {{ form.use_case_secondary_actor|as_crispy_field }}
-                                {{ form.use_case_precondition|attr:"rows:2"|as_crispy_field }}
-                                {{ form.use_case_flow_of_events|attr:"rows:3"|as_crispy_field }}
-                                {{ form.use_case_postcondition|attr:"rows:2"|as_crispy_field }}
-                                {{ form.use_case_assumption|attr:"rows:2"|as_crispy_field }}
-                                {{ form.use_case_source|attr:"rows:1"|as_crispy_field }}
+{#                                {{ form.use_case_primary_actor|as_crispy_field }}#}
+{#                                {{ form.use_case_secondary_actor|as_crispy_field }}#}
+{#                                {{ form.use_case_precondition|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.use_case_flow_of_events|attr:"rows:3"|as_crispy_field }}#}
+{#                                {{ form.use_case_postcondition|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.use_case_assumption|attr:"rows:2"|as_crispy_field }}#}
+{#                                {{ form.use_case_source|attr:"rows:1"|as_crispy_field }}#}
                             </div>
 
                             <div class="col-md-12">

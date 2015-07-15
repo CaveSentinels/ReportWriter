@@ -28,7 +28,7 @@ class Report(BaseModel):
     name = models.CharField(max_length=16, null=True, blank=True, db_index=True, default="/")
     title = models.CharField(max_length=128, db_index=True)
     description = models.TextField()
-    cwes = models.ManyToManyField(CWE)
+    cwes = models.ManyToManyField(CWE, blank=True)
 
     misuse_case_id = models.IntegerField(null=True, blank=True)
     misuse_case_description = models.TextField(null=True, blank=True, verbose_name="Description")

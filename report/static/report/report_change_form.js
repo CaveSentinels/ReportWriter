@@ -1,10 +1,6 @@
 jQuery(function() {
 
     window.onload=function() {
-        // Hide the misuse cases and use cases fields on page load
-        $("#muo-container").hide();
-        $('#custom-muo-container').hide();
-
         // Apply the Select2 css to the CWE select field
         //$(".cwe-select-multiple").select2({
         //    placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list"
@@ -57,7 +53,13 @@ jQuery(function() {
         // Show the muo selection container with pre-populated misuse case related to the cwes. Also hide the custom
         // MUO creation form
         e.preventDefault();
-        load_misusecases([]);
+
+        // If there is some already selected misuse case, don't reload the misuse cases again
+        var last_selected_misuse_case_id = $('.misuse-case-container.selected').attr("data-value");
+        if (last_selected_misuse_case_id == undefined) {
+            load_misusecases([]);
+        }
+
         $('#custom-muo-container').hide();
         $('#muo-container').show();
     });
@@ -65,6 +67,9 @@ jQuery(function() {
     $("body").on('click', '#misusecase-custom', function(e){
         // Show the muo creation div. Also hide the muo selection container
         e.preventDefault();
+        $('#id_misuse_case_description').val('');
+        $('#id_use_case_description').val('')
+        $('#id_osr').val('');
         $('#muo-container').hide();
         $('#custom-muo-container').show();
     });
@@ -82,22 +87,31 @@ jQuery(function() {
         var selected_misuse_case_div = $('.misuse-case-container.selected');
         var selected_use_case_div = $('.use-case-container.selected');
 
-        if (selected_misuse_case_div == undefined && selected_use_case_div == undefined) {
+        if (selected_misuse_case_div.attr("data-value") == undefined &&
+            selected_use_case_div.attr("data-value") == undefined) {
             // No misuse case and use case is selected
-            alert('You should select at least a misuse case or close the suggested one and write your own misuse ' +
+            alert('You must select at least a misuse case or close the suggested ones and write your own misuse ' +
                   'case and use case')
+
         }
-        else if (selected_misuse_case_div != undefined && selected_use_case_div == undefined) {
+        else if (selected_misuse_case_div.attr("data-value") != undefined &&
+                 selected_use_case_div.attr("data-value") == undefined) {
             // Misuse case is selected but no use case is selected
-            alert('You have only selected a misuse case. Are you sure you want to write your own use case?');
+            var myAlert = confirm('You have only selected a misuse case. Are you sure you want to write your own use case?' +
+                                  '\nClick \'OK\' to continue or \'Cancel\' to select the use case');
+            if (myAlert == true) {
+                // If user clicked ok, hide the MUO selection div and show the custom MUO creation div. Also populate
+                // the fields of custom MUO creation div with the selection
+                $('#muo-container').hide();
+                $('#custom-muo-container').show();
+                populate_muo_fields();
+            }
         }
         else {
             // Misuse case and use case is selected
 
-            // Get the custom muo container div
-            $('#misusecase-description').val(selected_misuse_case_div.find('.misuse-case-div').text().trim());
-            $('#usecase-description').val(selected_use_case_div.find('.use-case-div').text().trim());
-            $('#osr-description').val(selected_use_case_div.find('.osr-div').text().trim());
+            // Populate the
+            populate_muo_fields();
 
             // Hide the muo selection container and show the muo creation div with all the fields disabled
             $('#muo-container').hide();
@@ -253,4 +267,15 @@ function set_placeholder(value) {
 
     // Set the placeholder of the OSR text area
     $('#osr-description').attr("placeholder", placeholder);
+}
+
+
+function populate_muo_fields() {
+    var selected_misuse_case_div = $('.misuse-case-container.selected');
+    var selected_use_case_div = $('.use-case-container.selected');
+
+    $('#id_misuse_case_description').val(selected_misuse_case_div.find('.misuse-case-div').text().trim());
+    $('#id_use_case_description').val(selected_use_case_div.find('.use-case-div').text().trim());
+    $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
+
 }

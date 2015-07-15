@@ -13,8 +13,7 @@ from ReportWriter.rest_api import rest_api
 
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    # fields = ['name', 'title', 'description', 'cwes', 'misuse_case', 'use_case']
-    # readonly_fields = ['name']
+    exclude = ['created_at', 'created_by', 'modified_by', 'status']
     search_fields = ['title']
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
