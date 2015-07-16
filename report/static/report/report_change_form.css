@@ -103,10 +103,12 @@
 }
 
 
-.readonly .form-control[disabled], .readonly fieldset[disabled] .form-control, .readonly .select2-selection,
+.form-control[disabled], fieldset[disabled] .form-control, .readonly .select2-selection,
 .select2-container--default.select2-container--disabled .select2-selection--multiple {
-    background-color: #fcfcfc;
-    cursor: default;
+    /*background-color: #fcfcfc;*/
+    cursor: default !important;
 }
+
+
 
 

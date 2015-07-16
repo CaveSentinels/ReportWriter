@@ -6,6 +6,7 @@ jQuery(function() {
     $(".readonly #id_selected_cwes").css("width", "100%")
 
     var cwe_select = $("#id_selected_cwes")
+    var page_limit = cwe_select.data('page-limit')
 
     // Make CWE selection a multiple ajax select2
     cwe_select.select2({
@@ -29,7 +30,7 @@ jQuery(function() {
                 return {
                     results: data.items,
                     pagination: {
-                        more: (params.page * 10) < data.total_count
+                        more: (params.page * page_limit) < data.total_count
                     },
                 };
             },

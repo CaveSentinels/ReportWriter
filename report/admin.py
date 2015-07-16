@@ -16,7 +16,7 @@ from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-
+from .settings import SELECT_CWE_PAGE_LIMIT
 
 @admin.register(CWE)
 class CWEAdmin(BaseAdmin):
@@ -33,13 +33,27 @@ class ReportForm(forms.ModelForm):
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        """Make sure cwes field is not required, or the form will never be valid"""
         super(ReportForm, self).__init__(*args, **kwargs)
+        # Make some fields not required so they can be displayed as readonly or hidden fields
         self.fields['cwes'].required = False
+        self.fields['status'].required = False
+
+        # Make some fields readonly. The reason not defining these field in readonly_fields array in ReportAdmin
+        # is because fields in readonly_fields won't be passed to the form at all
+        self.fields['name'].widget.attrs['readonly'] = True
+        self.fields['name'].widget.attrs['disabled'] = True
+        self.fields['status'].widget.attrs['readonly'] = True
+        self.fields['status'].widget.attrs['disabled'] = True
+
+
+    def clean_name(self):
+        """ Since name is readonly, we make it read the original instance value """
+        return self.instance.name
+
 
 
     def clean_cwes(self):
-        if not self.instance.id or self.data['cwe_changed'] == 'true':
+        if not self.instance.id or self.data.get('cwe_changed') == 'true':
             selected_cwes = self.data.getlist('selected_cwes')
             cwes = self._get_selected_cwes(selected_cwes)
 
@@ -101,14 +115,14 @@ class ReportAdmin(BaseAdmin):
         except when it is in draft state and the current user is the author of the report or the user has the
         'can_edit_all' permission
         '''
-        return obj.status == 'draft' and (user == obj.created_by or user.has_perm('report.can_edit_all'))
+        return obj.status != 'draft' or user != obj.created_by or not user.has_perm('report.can_edit_all')
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         # Override changeform_view to decide if the if the form should be read only or not. Also pass the read only
         # variable in the context
 
         extra_context = extra_context or {}
-        extra_context['cwe_limit'] = 10
+        extra_context['cwe_limit'] = int(SELECT_CWE_PAGE_LIMIT)
 
         if object_id is not None:
             # Change form. Check if the change form should be editable or readonly
@@ -159,7 +173,7 @@ class ReportAdmin(BaseAdmin):
         if not request.is_ajax():
             raise Http404()
 
-        limit = 10
+        limit = SELECT_CWE_PAGE_LIMIT
         offset = int(request.GET.get('page', 1)) - 1
         cwes = rest_api.get_cwes(code=None,
                                  name_search_string=request.GET.get('q', None),
@@ -169,7 +183,7 @@ class ReportAdmin(BaseAdmin):
         if cwes['success']:
             results = [{'id': '%s_%s' % (c['code'], c['name']),
                         'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
-            return JsonResponse({'items': results, 'total_count': 12}) # TODO: replace total_count
+            return JsonResponse({'items': results, 'total_count': 17}) # TODO: replace total_count
         else:
             return JsonResponse({'err': cwes['msg']})
 
