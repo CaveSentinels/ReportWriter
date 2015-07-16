@@ -18,14 +18,17 @@ import settings
 DEBUG = True
 
 
-# INSTALLED_APPS = settings.INSTALLED_APPS + (
-#     'debug_toolbar',
-# )
+INSTALLED_APPS = settings.INSTALLED_APPS + (
+    # ...
+    # 'django.contrib.staticfiles',
+    # ...
+    'debug_toolbar',
+)
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'db2.sqlite3'),
     }
 }
 #
