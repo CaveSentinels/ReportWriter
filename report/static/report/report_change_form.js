@@ -1,6 +1,11 @@
 jQuery(function() {
 
-    var cwe_select = $(".cwe-select-multiple")
+    // handle form readonly layout
+    $(".readonly input, .readonly textarea, .readonly select").attr('disabled', 'true');
+    $(".readonly button").hide()
+    $(".readonly #id_selected_cwes").css("width", "100%")
+
+    var cwe_select = $("#id_selected_cwes")
 
     // Make CWE selection a multiple ajax select2
     cwe_select.select2({
@@ -47,12 +52,11 @@ jQuery(function() {
         }
 
         cwe_select.trigger('change');
-    });
 
-
-    // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
-    cwe_select.change(function() {
-        $('#cwe_changed').val(true);
+        // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+        cwe_select.change(function() {
+            $('#cwe_changed').val(true);
+        });
     });
 
 
@@ -66,7 +70,7 @@ jQuery(function() {
                 data: {description: description},
 
                 success: function (result) {
-
+                    cwe_select.empty()
                     $.each(result.items, function() {
                         var option = new Option(this.text, this.id, true, true);
                         cwe_select.append(option)

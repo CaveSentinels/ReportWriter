@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin, messages
 from django.conf.urls import url
 from django.http import Http404, JsonResponse
@@ -26,10 +27,75 @@ class CWEAdmin(BaseAdmin):
     date_hierarchy = 'created_at'
 
 
+
+class ReportForm(forms.ModelForm):
+
+    class Meta:
+        model = Report
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        """Make sure cwes field is not required, or the form will never be valid"""
+        super(ReportForm, self).__init__(*args, **kwargs)
+        self.fields['cwes'].required = False
+
+
+    def clean_cwes(self):
+        if not self.instance.id or self.data['cwe_changed'] == 'true':
+            selected_cwes = self.data.getlist('selected_cwes')
+            cwes = self._get_selected_cwes(selected_cwes)
+
+            if not cwes:
+                raise forms.ValidationError("This field is required.")
+
+            return cwes
+
+        return self.cleaned_data['cwes']
+
+
+    def _get_selected_cwes(self, selected_cwes):
+        """
+            This method handles the logic of creating and assigning suggested CWEs to the report
+        """
+        result = []
+
+        if selected_cwes:
+
+            # selected cwes are in the format code-name, so we split by first occurrence of '-' to get the code and name
+            cwe_codes = []
+            cwe_names = {}
+            for cwe in selected_cwes:
+                record = cwe.split('_', 1)
+                code = int(record[0])
+                name = record[1]
+                cwe_codes.append(code)
+                cwe_names[code] = name
+
+            # get the list names of the already existing cwes in the database
+            existing_cwes = CWE.objects.values('code')
+            existing_cwes = [cwe['code'] for cwe in existing_cwes]
+
+            # cwes that do not exist in the database
+            to_add_db = [code for code in cwe_codes if code not in existing_cwes]
+
+            # Note that using bulk_create() is very efficient as it only requires a single database query,
+            # but it will not call save(), pre_save() or post_save() on the object
+            to_add_db_objs = []
+            for code in to_add_db:
+                to_add_db_objs.append(CWE(code=code, name=cwe_names[code]))
+            CWE.objects.bulk_create(to_add_db_objs)
+
+            result = CWE.objects.filter(code__in=cwe_codes)
+
+        return result
+
+
+
+
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    # fields = ['name', 'title', 'description', 'cwes', 'misuse_case', 'use_case']
-    # readonly_fields = ['name']
+
+    form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
     search_fields = ['title']
     list_display = ['name', 'status']
@@ -59,7 +125,7 @@ class ReportAdmin(BaseAdmin):
             # Get the current User
             current_user = request.user
 
-            extra_context['read_only'] = self.is_readonly(current_model_instance, current_user)
+            extra_context['readonly'] = self.is_readonly(current_model_instance, current_user)
 
         return super(ReportAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
@@ -90,7 +156,7 @@ class ReportAdmin(BaseAdmin):
             cwes = report.cwes.all()
 
             if cwes:
-                results = [{'id': '%s-%s' % (c.code, c.name),
+                results = [{'id': '%s_%s' % (c.code, c.name),
                             'text': 'CWE-%s: %s' % (c.code, c.name)} for c in cwes]
                 return JsonResponse({'items': results})
 
@@ -107,7 +173,7 @@ class ReportAdmin(BaseAdmin):
                                  limit=limit)
 
         if cwes['success']:
-            results = [{'id': '%s-%s' % (c['code'], c['name']),
+            results = [{'id': '%s_%s' % (c['code'], c['name']),
                         'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
             return JsonResponse({'items': results, 'total_count': 12}) # TODO: replace total_count
         else:
@@ -126,7 +192,7 @@ class ReportAdmin(BaseAdmin):
         cwes = rest_api.get_cwes_for_description(description)
 
         if cwes['success']:
-            results = [{'id': '%s-%s' % (c['code'], c['name']),
+            results = [{'id': '%s_%s' % (c['code'], c['name']),
                         'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
             return JsonResponse({'items': results})
         else:
@@ -226,66 +292,4 @@ class ReportAdmin(BaseAdmin):
         self.message_user(request, msg, messages.SUCCESS)
         return HttpResponseRedirect(redirect_url)
 
-
-    def response_post_save_add(self, request, obj):
-        """ Create selected CWEs if the selection is changed """
-        if request.POST.get('cwe_changed') == 'true':
-            self._add_selected_cwes(request, obj)
-
-        return super(ReportAdmin, self).response_post_save_add(request, obj)
-
-
-    def response_post_save_change(self, request, obj):
-        """ Create selected CWEs if the selection is changed """
-        if request.POST.get('cwe_changed') == 'true':
-            self._add_selected_cwes(request, obj)
-
-        return super(ReportAdmin, self).response_post_save_change(request, obj)
-
-
-    def _add_selected_cwes(self, request, obj):
-        """
-            This method handles the logic of creating and assigning suggested cwes to the CWE
-        """
-        selected_cwes = request.POST.getlist('selected_cwes', None)
-
-        if selected_cwes:
-
-            # selected cwes are in the format code-name, so we split by first occurrence of '-' to get the code and name
-            cwe_codes = []
-            cwe_names = {}
-            for cwe in selected_cwes:
-                record = cwe.split('-', 1)
-                code = int(record[0])
-                name = record[1]
-                cwe_codes.append(code)
-                cwe_names[code] = name
-
-            # get the list names of the already existing cwes in the database
-            existing_cwes = CWE.objects.values('code')
-            existing_cwes = [cwe['code'] for cwe in existing_cwes]
-
-            # cwes that do not exist in the database
-            to_add_db = [code for code in cwe_codes if code not in existing_cwes]
-
-            # Note that using bulk_create() is very efficient as it only requires a single database query,
-            # but it will not call save(), pre_save() or post_save() on the object
-            to_add_db_objs = []
-            for code in to_add_db:
-                to_add_db_objs.append(CWE(code=code, name=cwe_names[code]))
-            CWE.objects.bulk_create(to_add_db_objs)
-
-            # get the list names of the already existing cwes in the current CWE object
-            report_cwes = obj.cwes.values('code')
-            report_cwes = [cwe['code'] for cwe in report_cwes]
-            to_add_cwes = [code for code in cwe_codes if code not in report_cwes]
-            to_delete_cwes = [code for code in report_cwes if code not in cwe_codes]
-
-            for code in to_add_cwes:
-                cwe_obj = CWE.objects.get(code=code)
-                obj.cwes.add(cwe_obj)
-
-            for code in to_delete_cwes:
-                cwe_obj = CWE.objects.get(code=code)
-                obj.cwes.remove(cwe_obj)
 

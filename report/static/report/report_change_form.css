@@ -96,3 +96,17 @@
     background-color: #ecf0f5;
     cursor: pointer;
 }
+
+
+#lookup_id_cwes {
+    display: none;
+}
+
+
+.readonly .form-control[disabled], .readonly fieldset[disabled] .form-control, .readonly .select2-selection,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+    background-color: #fcfcfc;
+    cursor: default;
+}
+
+

@@ -317,3 +317,20 @@ fieldset[disabled] .btn-warning.active {
     background-color: #edce8c;
     border-color: #edce8c;
 }
+
+
+
+.select2-container--default .select2-selection--multiple {
+    border-color: #d2d6de;
+    border-radius: 0 !important;
+    box-shadow: none;
+}
+
+
+.select2-container--default .select2-selection--multiple:focus {
+    border-color: #27b6af !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    border-radius: 3px;
+}
