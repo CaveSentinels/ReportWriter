@@ -26,8 +26,6 @@ class CWEAdmin(BaseAdmin):
     list_filter = [('created_by', admin.RelatedOnlyFieldListFilter)]
     date_hierarchy = 'created_at'
 
-
-
 class ReportForm(forms.ModelForm):
 
     class Meta:
@@ -89,12 +87,8 @@ class ReportForm(forms.ModelForm):
 
         return result
 
-
-
-
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
     search_fields = ['title']
@@ -203,7 +197,11 @@ class ReportAdmin(BaseAdmin):
         if request.method != 'POST':
             raise Http404("Invalid access using GET request!")
 
-        misuse_cases = rest_api.get_misuse_cases('123,345,567')
+        # Get the selected CWE codes string
+        cwes = request.POST['cwe_codes']
+        
+        # Make a REST call to get the misuse cases related to the selected CWEs
+        misuse_cases = rest_api.get_misuse_cases(cwes)
 
         if misuse_cases['success'] is False:
             # There was some error and the REST call was not successful
@@ -220,8 +218,10 @@ class ReportAdmin(BaseAdmin):
         if request.method != 'POST':
             raise Http404("Invalid access using GET request!")
 
+        # Get the selected misuse case id
         selected_misuse_case_id = request.POST['misuse_case_id']
 
+        # Make a REST call to get the use cases related to the selected misuse case
         use_cases = rest_api.get_use_cases(selected_misuse_case_id)
 
         if use_cases['success'] is False:

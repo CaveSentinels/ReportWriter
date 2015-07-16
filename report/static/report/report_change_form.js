@@ -94,7 +94,30 @@ jQuery(function() {
         // If there is some already selected misuse case, don't reload the misuse cases again
         var last_selected_misuse_case_id = $('.misuse-case-container.selected').attr("data-value");
         if (last_selected_misuse_case_id == undefined) {
-            load_misusecases([]);
+            var cwe_code_string = '';
+            var delimiter = '';
+
+            // Get all the CWEs selected and loop over it. Value of each selected option is in the format
+            // 'CWE Code'_'CWE Name'. We need to get a string of all the selected CWE codes in comma separated format
+            cwe_select.val().each(function(){
+                // Append the delimiter value to the CWE code string
+                cwe_code_string = cwe_code_string.concat(delimiter);
+
+                // Get the value of the selected option
+                var cwe_code_and_string = $(this).val();
+
+                // Split the value on hyphen(-), and get the first element of the array, which is CWE code
+                var code = cwe_code_and_string.split('_')[0];
+
+                // Concatenate the code in the string of CWE codes
+                cwe_code_string = cwe_code_string.concat(code);
+
+                // Change the delimiter value to ','
+                delimiter = ',';
+            });
+
+            // Load the misuse cases for the selected CWEs
+            load_misusecases(cwe_code_string);
         }
 
         $('#custom-muo-container').hide();
@@ -105,7 +128,7 @@ jQuery(function() {
         // Show the muo creation div. Also hide the muo selection container
         e.preventDefault();
         $('#id_misuse_case_description').val('');
-        $('#id_use_case_description').val('')
+        $('#id_use_case_description').val('');
         $('#id_osr').val('');
         $('#muo-container').hide();
         $('#custom-muo-container').show();
@@ -203,11 +226,11 @@ jQuery(function() {
 });
 
 
-function load_misusecases(cwe_ids) {
+function load_misusecases(cwe_codes_string) {
     $.ajax({
         url: 'report_report_misusecases/',
         type: 'POST',
-        data: {cwe_ids: cwe_ids}, // Send the selected CWE ids
+        data: {cwe_codes: cwe_codes_string}, // Send the selected CWE codes
 
         success: function(result) {
             $('.slim-scroll-div').replaceWith(result);
