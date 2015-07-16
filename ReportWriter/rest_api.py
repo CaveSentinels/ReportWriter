@@ -6,7 +6,7 @@ class rest_api:
     ENHANCED_CWE_BASE_URL = 'http://localhost:9000/api/v1'
 
     # API Key
-    ENHANCED_CWE_API_KEY = 'Token f9a62b1c40ff2a42325cbadec77cfc2351807898'
+    ENHANCED_CWE_API_KEY = 'Token ab19b8117f23335e428a1c4acfe6f876676a65b4'
 
     @staticmethod
     def get_header():
@@ -77,10 +77,10 @@ class rest_api:
                  successful, the dictionary also contains the descriptive error message. If the request was successful,
                  the dictionary also contains the list of the CWEs returned from the Enhanced CWE application
         '''
-        payload = {'code': str(code),
-                   'name_contains': str(name_search_string),
-                   'offset': str(offset),
-                   'limit': str(offset)}
+        payload = {'code': code,
+                   'name_contains': name_search_string,
+                   'offset': offset,
+                   'limit': limit}
         url_string = '%s/cwe/all' % rest_api.ENHANCED_CWE_BASE_URL
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)

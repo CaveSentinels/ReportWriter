@@ -1,14 +1,10 @@
-from crispy_forms.bootstrap import UneditableField
-from django.contrib import admin
-from django.forms import ModelForm
+from django.contrib import admin, messages
+from django.conf.urls import url
+from django.http import Http404, JsonResponse
+from django.template.response import TemplateResponse
+
 from base.admin import BaseAdmin
 from models import CWE, Report
-from django.conf.urls import url
-from django.http import Http404
-from django.template.response import TemplateResponse
-from django.utils.text import capfirst
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Div
 from ReportWriter.rest_api import rest_api
 from django.contrib import admin
 from django.contrib import messages
@@ -20,11 +16,24 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
+
+@admin.register(CWE)
+class CWEAdmin(BaseAdmin):
+    model = CWE
+    fields = ['code', 'name']
+    search_fields = ['name', 'code']
+    list_filter = [('created_by', admin.RelatedOnlyFieldListFilter)]
+    date_hierarchy = 'created_at'
+
+
 @admin.register(Report)
 class ReportAdmin(BaseAdmin):
-    exclude = ['created_at', 'created_by', 'modified_by']
+    # fields = ['name', 'title', 'description', 'cwes', 'misuse_case', 'use_case']
+    # readonly_fields = ['name']
+    exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
     search_fields = ['title']
     list_display = ['name', 'status']
+    raw_id_fields = ['cwes']
 
     def is_readonly(self, obj, user):
         '''
@@ -39,6 +48,7 @@ class ReportAdmin(BaseAdmin):
         # variable in the context
 
         extra_context = extra_context or {}
+        extra_context['cwe_limit'] = 10
 
         if object_id is not None:
             # Change form. Check if the change form should be editable or readonly
@@ -56,9 +66,12 @@ class ReportAdmin(BaseAdmin):
 
     def get_urls(self):
         urls = super(ReportAdmin, self).get_urls()
+        info = self.model._meta.app_label, self.model._meta.model_name
 
         additional_urls = [
-            url(r'report_report_cwes/$', self.admin_site.admin_view(self.cwe_view)),
+            url(r'report_init_cwes/$', self.admin_site.admin_view(self.init_cwes_view), name='%s_%s_init_cwes' % info),
+            url(r'report_get_cwes/$', self.admin_site.admin_view(self.get_cwes_view), name='%s_%s_get_cwes' % info),
+            url(r'report_suggest_cwes/$', self.admin_site.admin_view(self.suggest_cwes_view), name='%s_%s_suggest_cwes' % info),
             url(r'report_report_misusecases/$', self.admin_site.admin_view(self.misusecases_view)),
             url(r'report_report_usecases/$', self.admin_site.admin_view(self.usecases_view)),
         ]
@@ -66,25 +79,59 @@ class ReportAdmin(BaseAdmin):
         return additional_urls + urls
 
 
-    def cwe_view(self, request):
-        if request.method != 'POST':
-            raise Http404("Invalid access using GET request!")
+    def init_cwes_view(self, request):
+        if not request.is_ajax():
+            raise Http404()
 
-        if request.description is None or request.description == '':
-            # Raise an exception from here
-            pass
+        report_id = request.GET.get('report_id')
+
+        if report_id:
+            report = Report.objects.get(pk=report_id)
+            cwes = report.cwes.all()
+
+            if cwes:
+                results = [{'id': '%s-%s' % (c.code, c.name),
+                            'text': 'CWE-%s: %s' % (c.code, c.name)} for c in cwes]
+                return JsonResponse({'items': results})
+
+
+    def get_cwes_view(self, request):
+        if not request.is_ajax():
+            raise Http404()
+
+        limit = 10
+        offset = int(request.GET.get('page', 1)) - 1
+        cwes = rest_api.get_cwes(code=None,
+                                 name_search_string=request.GET.get('q', None),
+                                 offset=offset * limit,
+                                 limit=limit)
+
+        if cwes['success']:
+            results = [{'id': '%s-%s' % (c['code'], c['name']),
+                        'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
+            return JsonResponse({'items': results, 'total_count': 12}) # TODO: replace total_count
         else:
-            # Get the suggested CWEs for the description from Enhanced CWE application
-            cwes = rest_api.get_cwes_for_description('Authentication Bypass')
+            return JsonResponse({'err': cwes['msg']})
 
-        # cwes = [{'id': '1', 'code': '123', 'name': 'Authentication Bypass by Alternate Name'},
-        #         {'id': '2', 'code': '456', 'name': 'Authentication Bypass by Spoofing'},
-        #         {'id': '3', 'code': '789', 'name': 'Buffer Overflow'},
-        #         {'id': '4', 'code': '987', 'name': 'Authentication Bypass by Wrong Name'},
-        #         {'id': '5', 'code': '654', 'name': 'Invalid File Traversal'}]
 
-        context = {'cwes': cwes}
-        return TemplateResponse(request, "admin/report/report/cwe_suggestion.html", context)
+    def suggest_cwes_view(self, request):
+        if not request.is_ajax():
+            raise Http404()
+
+        description = request.GET.get('description')
+
+        if not description:
+            return JsonResponse({'err': 'Description is empty!'})
+
+        cwes = rest_api.get_cwes_for_description(description)
+
+        if cwes['success']:
+            results = [{'id': '%s-%s' % (c['code'], c['name']),
+                        'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
+            return JsonResponse({'items': results})
+        else:
+            return JsonResponse({'err': cwes['msg']})
+
 
     def misusecases_view(self, request):
         if request.method != 'POST':
@@ -178,3 +225,67 @@ class ReportAdmin(BaseAdmin):
 
         self.message_user(request, msg, messages.SUCCESS)
         return HttpResponseRedirect(redirect_url)
+
+
+    def response_post_save_add(self, request, obj):
+        """ Create selected CWEs if the selection is changed """
+        if request.POST.get('cwe_changed') == 'true':
+            self._add_selected_cwes(request, obj)
+
+        return super(ReportAdmin, self).response_post_save_add(request, obj)
+
+
+    def response_post_save_change(self, request, obj):
+        """ Create selected CWEs if the selection is changed """
+        if request.POST.get('cwe_changed') == 'true':
+            self._add_selected_cwes(request, obj)
+
+        return super(ReportAdmin, self).response_post_save_change(request, obj)
+
+
+    def _add_selected_cwes(self, request, obj):
+        """
+            This method handles the logic of creating and assigning suggested cwes to the CWE
+        """
+        selected_cwes = request.POST.getlist('selected_cwes', None)
+
+        if selected_cwes:
+
+            # selected cwes are in the format code-name, so we split by first occurrence of '-' to get the code and name
+            cwe_codes = []
+            cwe_names = {}
+            for cwe in selected_cwes:
+                record = cwe.split('-', 1)
+                code = int(record[0])
+                name = record[1]
+                cwe_codes.append(code)
+                cwe_names[code] = name
+
+            # get the list names of the already existing cwes in the database
+            existing_cwes = CWE.objects.values('code')
+            existing_cwes = [cwe['code'] for cwe in existing_cwes]
+
+            # cwes that do not exist in the database
+            to_add_db = [code for code in cwe_codes if code not in existing_cwes]
+
+            # Note that using bulk_create() is very efficient as it only requires a single database query,
+            # but it will not call save(), pre_save() or post_save() on the object
+            to_add_db_objs = []
+            for code in to_add_db:
+                to_add_db_objs.append(CWE(code=code, name=cwe_names[code]))
+            CWE.objects.bulk_create(to_add_db_objs)
+
+            # get the list names of the already existing cwes in the current CWE object
+            report_cwes = obj.cwes.values('code')
+            report_cwes = [cwe['code'] for cwe in report_cwes]
+            to_add_cwes = [code for code in cwe_codes if code not in report_cwes]
+            to_delete_cwes = [code for code in report_cwes if code not in cwe_codes]
+
+            for code in to_add_cwes:
+                cwe_obj = CWE.objects.get(code=code)
+                obj.cwes.add(cwe_obj)
+
+            for code in to_delete_cwes:
+                cwe_obj = CWE.objects.get(code=code)
+                obj.cwes.remove(cwe_obj)
+

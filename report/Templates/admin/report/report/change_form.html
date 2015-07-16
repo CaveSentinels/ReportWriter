@@ -26,37 +26,45 @@
                 <div class="box-body">
 
                     <div class="form-group">
-                        <div class="col-md-6">
+
+                        <div class="col-md-6" style="padding-left:0">
                             {{ form.name.label_tag }}
-                            {{ form.name }}
+                            <p>{{ form.name.value }}</p>
+                            {{ form.name|attr:"hidden:true" }}
                         </div>
                         <div class="col-md-6">
                             {{ form.status.label_tag }}
-                            {{ form.status }}
+                            <p>{{ form.status.value }}</p>
+                            {{ form.status|attr:"hidden:true" }}
                         </div>
-                    </div>
 
+                    </div>
 
                     {{ form.title|as_crispy_field }}
                     {{ form.description|as_crispy_field }}
 
 
+
+
                     <div class="form-group">
-                        <label for="cwe">CWEs:</label>
-                        <a href="#cwe-search" class="btn btn-xs">
-                            <span class="glyphicon glyphicon-search"></span>
-                        </a>
+                        {{ form.cwes|attr:"hidden:true" }}
+                        {{ form.cwes.label_tag }}
 
-                        <div class="form-group" id="cwe-custom-search">
-
-                        </div>
                         <div id="cwe-selection">
-                            <select class="cwe-select-multiple" id="cwe" multiple="multiple" style="width:87%"></select>
-                            <button type="button" class="btn btn-success btn-md" id="cwe-suggestion-button"
-                                    style="float:right; width:12%">Suggest CWEs
+
+                            <select class="cwe-select-multiple" id="selected_cwes" name="selected_cwes" multiple="multiple"
+                                    data-ajax-url="{% url 'admin:report_report_get_cwes' %}"
+                                    data-init-url="{% url 'admin:report_report_init_cwes' %}"
+                                    data-report-id="{{ object_id }}" style="width:87%"></select>
+
+                            <button type="button" class="btn btn-primary btn-md" id="cwe-suggestion-button"
+                                    data-ajax-url="{% url 'admin:report_report_suggest_cwes' %}" style="float:right; width:12%">Suggest CWEs
                             </button>
                         </div>
-                        {# cwe-selection is to be loaded from cwe_suggestion.html#}
+
+                        <!--This will be updated whenever cwe selection has changed. It is used in response_change()-->
+                        <input type="hidden" name="cwe_changed" id="cwe_changed" value="false">
+
                     </div>
 
                     <div class="muo-search-container">

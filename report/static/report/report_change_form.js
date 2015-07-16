@@ -1,51 +1,84 @@
 jQuery(function() {
 
-    window.onload=function() {
-        // Apply the Select2 css to the CWE select field
-        //$(".cwe-select-multiple").select2({
-        //    placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list"
-        //});
+    var cwe_select = $(".cwe-select-multiple")
 
-        $(".cwe-select-multiple").select2({
-                placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list",
-            ajax: {
-                //url: "http://puppygifs.tumblr.com/api/read/json",
-                url: "http://www.flickr.com/services/feeds/photos_public.gne?tags=soccer&format=json",
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                  return {
-                      q: params.term // search term
-                      //page: params.page
-                  };
-                },
-
-                processResults: function (data, page) {
-                  // parse the results into the format expected by Select2.
-                  // since we are using custom formatting functions we do not need to
-                  // alter the remote JSON data
-                  return {
-                    results: data
-                  };
-                },
-                cache: true
+    // Make CWE selection a multiple ajax select2
+    cwe_select.select2({
+        placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list",
+        ajax: {
+            url: $(this).data('ajax-url'),
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+              return {
+                  q: params.term, // search term
+                  page: params.page
+              };
             },
 
-            //escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-            minimumInputLength: 0,
-            //templateResult: formatRepo, // omitted for brevity, see the source of this page
-            //templateSelection: formatRepoSelection // omitted for brevity, see the source of this page
-        });
-    };
+            processResults: function (data, params) {
+              // parse the results into the format expected by Select2.
+              // since we are using custom formatting functions we do not need to
+              // alter the remote JSON data
+                params.page = params.page || 1;
+                return {
+                    results: data.items,
+                    pagination: {
+                        more: (params.page * 10) < data.total_count
+                    },
+                };
+            },
+            cache: true
+        },
+
+        minimumInputLength: 0,
+    });
+
+    // populate CWEs with initial data
+    var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
+    $request.then(function (data) {
+
+        var cwes = data.items
+        for (var i = 0; i < cwes.length; i++) {
+            var item = cwes[i];
+            var option = new Option(item.text, item.id, true, true);
+
+            cwe_select.append(option);
+        }
+
+        cwe_select.trigger('change');
+    });
 
 
+    // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+    cwe_select.change(function() {
+        $('#cwe_changed').val(true);
+    });
 
 
-
-
+    // get CWE suggestions
     $("body").on('click', '#cwe-suggestion-button', function(e){
-        //TODO: Get the remote data here
-        //load_cwes();
+        var description = $('#id_description').val()
+        if (description) {
+            // Description is present, we need to make a call to the Enhanced CWE application to get the related CWEs
+            $.ajax({
+                url: $(this).data('ajax-url'),
+                data: {description: description},
+
+                success: function (result) {
+
+                    $.each(result.items, function() {
+                        var option = new Option(this.text, this.id, true, true);
+                        cwe_select.append(option)
+                    });
+                    cwe_select.trigger("change");
+                },
+
+                error: function (xhr, errmsg, err) {
+                    alert("Oops! We have encountered and error \n" + errmsg);
+                }
+            });
+        }
     });
 
 
@@ -164,44 +197,6 @@ jQuery(function() {
         set_placeholder(value);
     });
 });
-
-
-//function load_cwes(description) {
-//    if (description == null || description == '') {
-//        // If description is None or Empty string, it means that either page has loaded for the first time or
-//        // user had clicked 'Suggest CWEs' button without writing any description for the report.
-//        $('#cwe-selection').replaceWith('');
-//    }
-//    else {
-//        // Description is present, we need to make a call to the Enhanced CWE application to get the related CWEs
-//        $.ajax({
-//            url: 'report_report_cwes/',
-//            type: 'POST',
-//            data: {},
-//
-//            success: function (result) {
-//                $('#cwe-selection').replaceWith(result);
-//
-//                alert("Hello" + result);
-//
-//                //var data =  [{ id: 0, text: 'CWE:123 Authentication Bypass by Alternate Name' },
-//                //    { id: 1, text: 'CWE:456 Authentication Bypass by Spoofing' },
-//                //    { id: 2, text: 'CWE:789 Buffer Overflow' },
-//                //    { id: 3, text: 'CWE:086 Authentication Bypass by Alternate Name' },
-//                //    { id: 4, text: 'CWE:256 Invalid Filed Traversal' }]
-//
-//                $(".cwe-select-multiple").select2({
-//                    data: data
-//                });
-//
-//            },
-//
-//            error: function (xhr, errmsg, err) {
-//                alert("Oops! We have encountered and error \n" + errmsg);
-//            }
-//        });
-//    }
-//}
 
 
 function load_misusecases(cwe_ids) {
