@@ -1,22 +1,19 @@
 from django import forms
-from django.contrib import admin, messages
 from django.conf.urls import url
 from django.http import Http404, JsonResponse
 from django.template.response import TemplateResponse
-
-from base.admin import BaseAdmin
-from models import CWE, Report
-from ReportWriter.rest_api import rest_api
 from django.contrib import admin
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
-from models import *
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
-from django.shortcuts import render, get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
+
+from base.admin import BaseAdmin
+from ReportWriter.rest_api import rest_api
+from models import *
 from .settings import SELECT_CWE_PAGE_LIMIT
+
 
 @admin.register(CWE)
 class CWEAdmin(BaseAdmin):
@@ -35,15 +32,17 @@ class ReportForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
         # Make some fields not required so they can be displayed as readonly or hidden fields
-        self.fields['cwes'].required = False
-        self.fields['status'].required = False
+        if 'cwe' in self.fields:
+            self.fields['cwes'].required = False
 
-        # Make some fields readonly. The reason not defining these field in readonly_fields array in ReportAdmin
-        # is because fields in readonly_fields won't be passed to the form at all
-        self.fields['name'].widget.attrs['readonly'] = True
-        self.fields['name'].widget.attrs['disabled'] = True
-        self.fields['status'].widget.attrs['readonly'] = True
-        self.fields['status'].widget.attrs['disabled'] = True
+        if 'name' in self.fields:
+            self.fields['name'].widget.attrs['readonly'] = True
+            self.fields['name'].widget.attrs['disabled'] = True
+
+        if 'status' in self.fields:
+            self.fields['status'].widget.attrs['readonly'] = True
+            self.fields['status'].widget.attrs['disabled'] = True
+            self.fields['status'].required = False
 
 
     def clean_name(self):
@@ -108,13 +107,31 @@ class ReportAdmin(BaseAdmin):
     list_display = ['name', 'status']
     raw_id_fields = ['cwes']
 
-    def is_readonly(self, obj, user):
+    def is_readonly(self, request, obj):
         '''
         returns a boolean value indicating whether change form should be readonly or not. Change form is always readonly
         except when it is in draft state and the current user is the author of the report or the user has the
         'can_edit_all' permission
         '''
-        return obj.status != 'draft' or user != obj.created_by or not user.has_perm('report.can_edit_all')
+        user = request.user
+        return obj and (obj.status != 'draft' or user != obj.created_by or not user.has_perm('report.can_edit_all'))
+
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Because we can't add fields to readonly_fields array because they won't be sent to the form object otherwise,
+        then we have to exclude the fields that are readonly when the form is submitted, validated and saved.
+        Therefore, we check if the method is POST and return the list of fields that are supposed to be readonly to be excluded
+        """
+        readonly_fields = list(self.readonly_fields)
+
+        if request.method == "POST":
+            if self.is_readonly(request, obj):
+                readonly_fields.extend([field.name for field in self.opts.local_fields])
+                readonly_fields.extend([field.name for field in self.opts.local_many_to_many])
+                readonly_fields = list(set(readonly_fields))
+        return readonly_fields
+
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         # Override changeform_view to decide if the if the form should be read only or not. Also pass the read only
@@ -129,10 +146,8 @@ class ReportAdmin(BaseAdmin):
             # Get the current model instance
             current_model_instance = Report.objects.get(pk=object_id)
 
-            # Get the current User
-            current_user = request.user
 
-            extra_context['readonly'] = self.is_readonly(current_model_instance, current_user)
+            extra_context['readonly'] = self.is_readonly(request, current_model_instance)
 
         return super(ReportAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
@@ -174,10 +189,9 @@ class ReportAdmin(BaseAdmin):
 
         limit = SELECT_CWE_PAGE_LIMIT
         offset = int(request.GET.get('page', 1)) - 1
-        cwes = rest_api.get_cwes(code=None,
-                                 name_search_string=request.GET.get('q', None),
-                                 offset=offset * limit,
-                                 limit=limit)
+        cwes = rest_api.get_cwes_with_search_string(search_string=request.GET.get('q', None),
+                                                    offset=offset * limit,
+                                                    limit=limit)
 
         if cwes['success']:
             results = [{'id': '%s_%s' % (c['code'], c['name']),
@@ -212,7 +226,7 @@ class ReportAdmin(BaseAdmin):
 
         # Get the selected CWE codes string
         cwes = request.POST['cwe_codes']
-        
+
         # Make a REST call to get the misuse cases related to the selected CWEs
         misuse_cases = rest_api.get_misuse_cases(cwes)
 

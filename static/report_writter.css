@@ -326,6 +326,9 @@ fieldset[disabled] .btn-warning.active {
     box-shadow: none;
 }
 
+.form-group.has-error .select2-container--default .select2-selection--multiple {
+    border-color: #dd4b39;
+}
 
 .select2-container--default .select2-selection--multiple:focus {
     border-color: #27b6af !important;
