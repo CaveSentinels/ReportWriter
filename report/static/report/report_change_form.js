@@ -1,9 +1,12 @@
 jQuery(function() {
 
     // handle form readonly layout
-    $(".readonly input, .readonly textarea, .readonly select").attr('disabled', 'true');
+    $(".readonly input, .readonly textarea, .readonly select").prop('disabled', true);
     $(".readonly button").hide();
     $(".readonly #id_selected_cwes").css("width", "100%");
+
+    //alert($("#custom-muo-flag").val());
+    toggl_is_custom_muo($("#custom-muo-flag").val());
 
     var cwe_select = $("#id_selected_cwes");
     var page_limit = cwe_select.data('page-limit');
@@ -41,24 +44,32 @@ jQuery(function() {
     });
 
     // populate CWEs with initial data
-    var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
-    $request.then(function (data) {
+    if (cwe_select.data('report-id')) {
+        var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
+        $request.then(function (data) {
 
-        var cwes = data.items
-        for (var i = 0; i < cwes.length; i++) {
-            var item = cwes[i];
-            var option = new Option(item.text, item.id, true, true);
+            var cwes = data.items
+            for (var i = 0; i < cwes.length; i++) {
+                var item = cwes[i];
+                var option = new Option(item.text, item.id, true, true);
 
-            cwe_select.append(option);
-        }
+                cwe_select.append(option);
+            }
 
-        cwe_select.trigger('change');
+            cwe_select.trigger('change');
 
+            // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+            // the switch is added here because we want to listedn for changes after initializing the data
+            cwe_select.change(function() {
+                $('#cwe_changed').val(true);
+            });
+        });
+    } else {
         // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
         cwe_select.change(function() {
             $('#cwe_changed').val(true);
         });
-    });
+    }
 
 
     // get CWE suggestions
@@ -86,6 +97,15 @@ jQuery(function() {
         }
     });
 
+    // Make MUO fields not readonly before submitting the form or else the values won't be submitted
+    $("#report_form").submit(function( event ) {
+        // Only if the whole form is not intended to be readonly
+        if (!$('#report-container').hasClass('readonly')) {
+            var muo_container = $('#custom-muo-container');
+            muo_container.find('input:disabled, textarea:disabled, select:disabled').prop('disabled', false);
+        }
+    });
+
 
     $("body").on('click', '#misusecase-suggestion', function(e){
         // Show the muo selection container with pre-populated misuse case related to the cwes. Also hide the custom
@@ -100,16 +120,12 @@ jQuery(function() {
 
             // Get all the CWEs selected and loop over it. Value of each selected option is in the format
             // 'CWE Code'_'CWE Name'. We need to get a string of all the selected CWE codes in comma separated format
-            //cwe_select.val().each(function(){
-            $('#id_selected_cwes  option:selected').each(function() {
+            cwe_select.val().forEach(function(item) {
                 // Append the delimiter value to the CWE code string
                 cwe_code_string = cwe_code_string.concat(delimiter);
 
-                // Get the value of the selected option
-                var cwe_code_and_string = $(this).val();
-
                 // Split the value on hyphen(-), and get the first element of the array, which is CWE code
-                var code = cwe_code_and_string.split('_')[0];
+                var code = item.split('_')[0];
 
                 // Concatenate the code in the string of CWE codes
                 cwe_code_string = cwe_code_string.concat(code);
@@ -133,7 +149,7 @@ jQuery(function() {
         $('#custom-muo-container').show();
 
         // Make the is_custom_muo boolean variable true
-        toggl_is_custom_muo(true);
+        toggl_is_custom_muo('custom');
     });
 
     $("body").on('click', '#muo-close', function(e){
@@ -169,7 +185,7 @@ jQuery(function() {
                 populate_muo_fields();
 
                 // Make the is_custom_muo boolean variable true
-                toggl_is_custom_muo(true);
+                 toggl_is_custom_muo('custom');
             }
         }
         else {
@@ -183,7 +199,7 @@ jQuery(function() {
             $('#custom-muo-container').show();
 
             // Make the is_custom_muo boolean variable true
-            toggl_is_custom_muo(false);
+            toggl_is_custom_muo('generic');
         }
     });
 
@@ -309,8 +325,22 @@ function populate_muo_fields() {
     $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
 }
 
-function toggl_is_custom_muo(is_muo_custom) {
-    // Change the value of the hidden field
-    $("#custom-muo-flag").attr("value", is_muo_custom);
-    $('#custom-muo-container textarea').attr('disabled', !is_muo_custom);
+
+function toggl_is_custom_muo(custom_muo_status) {
+    // Get the status of the report
+    var report_status = $('#id_status').val();
+
+    if (report_status == 'draft') {
+        // Change the value of the hidden field
+        $("#custom-muo-flag").attr("value", custom_muo_status);
+
+        if (custom_muo_status == 'custom') {
+            // If custom status is 'custom', enable the custom MUO container div
+            $('#custom-muo-container textarea').prop('disabled', false);
+        }
+        else if (custom_muo_status == 'generic') {
+            // If custom status is 'generic', disable the custom MUO container div
+            $('#custom-muo-container textarea').prop('disabled', true);
+        }
+    }
 }

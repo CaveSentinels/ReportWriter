@@ -21,7 +21,7 @@
     {% with adminform.form as form %}
 
 
-        <div class="fieldset-box col-md-12 {% if readonly %}readonly{% endif %}">
+        <div id="report-container" class="fieldset-box col-md-12 {% if readonly %}readonly{% endif %}">
             <div class="box box-primary">
                 <div class="box-body">
 
@@ -53,7 +53,7 @@
                             <select id="id_selected_cwes" name="selected_cwes" multiple="multiple"
                                     data-ajax-url="{% url 'admin:report_report_get_cwes' %}"
                                     data-init-url="{% url 'admin:report_report_init_cwes' %}"
-                                    data-report-id="{{ object_id }}"
+                                    data-report-id="{{ object_id|default_if_none:'' }}"
                                     data-page-limit="{{ cwe_limit }}" style="width:87%"></select>
 
                             <button type="button" class="btn btn-success btn-md" id="cwe-suggestion-button"
@@ -98,10 +98,10 @@
                             </button>
                         </div>
 
-                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px" {% if not object_id %}hidden{% endif %}>
+                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px" {% if not original.custom %}hidden{% endif %}>
 
                             <!--This will be updated whenever custom muo status is changed. It is used in response_change()-->
-                            <input type="hidden" id=custom-muo-flag value=true name=custom-muo-flag/>
+                            <input type="hidden" id="custom-muo-flag" name="custom" value="{{ original.custom }}">
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Misuse Case:</label>
@@ -134,7 +134,6 @@
                                 {{ form.osr|attr:"rows:5"|as_crispy_field }}
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
