@@ -7,7 +7,7 @@ class TestIssueReport(TestCase):
     def setUp(self):
         """
         This method does the general setup needed for the test methods.
-        For now it just creates a MUOContainer object and an issue report on that MUO Container
+        It creates a reviewer user and creates an issue report.
         """
         self.reviewer = User.objects.create(username='reviewer')
         self.reviewer.save()
