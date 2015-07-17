@@ -53,6 +53,7 @@ class Report(BaseModel):
 
     osr = models.TextField(null=True, blank=True, verbose_name="Overlooked Security Requirement")
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
+    custom = models.BooleanField('Author has written a custom MUO', default=False, null=False, blank=False)
     promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
 
 

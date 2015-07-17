@@ -1,51 +1,106 @@
 jQuery(function() {
 
-    window.onload=function() {
-        // Apply the Select2 css to the CWE select field
-        //$(".cwe-select-multiple").select2({
-        //    placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list"
-        //});
+    // handle form readonly layout
+    $(".readonly input, .readonly textarea, .readonly select").prop('disabled', true);
+    $(".readonly button").hide();
+    $(".readonly #id_selected_cwes").css("width", "100%");
 
-        $(".cwe-select-multiple").select2({
-                placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list",
-            ajax: {
-                //url: "http://puppygifs.tumblr.com/api/read/json",
-                url: "http://www.flickr.com/services/feeds/photos_public.gne?tags=soccer&format=json",
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                  return {
-                      q: params.term // search term
-                      //page: params.page
-                  };
-                },
+    var cwe_select = $("#id_selected_cwes");
+    var page_limit = cwe_select.data('page-limit');
 
-                processResults: function (data, page) {
-                  // parse the results into the format expected by Select2.
-                  // since we are using custom formatting functions we do not need to
-                  // alter the remote JSON data
-                  return {
-                    results: data
-                  };
-                },
-                cache: true
+    // Make CWE selection a multiple ajax select2
+    cwe_select.select2({
+        placeholder: "Either click 'Suggest CWEs' to get the suggest CWE based on your description or select a CWE from the list",
+        ajax: {
+            url: $(this).data('ajax-url'),
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+              return {
+                  q: params.term, // search term
+                  page: params.page
+              };
             },
 
-            //escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-            minimumInputLength: 0,
-            //templateResult: formatRepo, // omitted for brevity, see the source of this page
-            //templateSelection: formatRepoSelection // omitted for brevity, see the source of this page
+            processResults: function (data, params) {
+              // parse the results into the format expected by Select2.
+              // since we are using custom formatting functions we do not need to
+              // alter the remote JSON data
+                params.page = params.page || 1;
+                return {
+                    results: data.items,
+                    pagination: {
+                        more: (params.page * page_limit) < data.total_count
+                    },
+                };
+            },
+            cache: true
+        },
+
+        minimumInputLength: 0,
+    });
+
+    // populate CWEs with initial data
+    if (cwe_select.data('report-id')) {
+        var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
+        $request.then(function (data) {
+
+            var cwes = data.items
+            for (var i = 0; i < cwes.length; i++) {
+                var item = cwes[i];
+                var option = new Option(item.text, item.id, true, true);
+
+                cwe_select.append(option);
+            }
+
+            cwe_select.trigger('change');
+
+            // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+            // the switch is added here because we want to listedn for changes after initializing the data
+            cwe_select.change(function() {
+                $('#cwe_changed').val(true);
+            });
         });
-    };
+    } else {
+        // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+        cwe_select.change(function() {
+            $('#cwe_changed').val(true);
+        });
+    }
 
 
-
-
-
-
+    // get CWE suggestions
     $("body").on('click', '#cwe-suggestion-button', function(e){
-        //TODO: Get the remote data here
-        //load_cwes();
+        var description = $('#id_description').val();
+        if (description) {
+            // Description is present, we need to make a call to the Enhanced CWE application to get the related CWEs
+            $.ajax({
+                url: $(this).data('ajax-url'),
+                data: {description: description},
+
+                success: function (result) {
+                    cwe_select.empty()
+                    $.each(result.items, function() {
+                        var option = new Option(this.text, this.id, true, true);
+                        cwe_select.append(option)
+                    });
+                    cwe_select.trigger("change");
+                },
+
+                error: function (xhr, errmsg, err) {
+                    alert("Oops! We have encountered and error \n" + errmsg);
+                }
+            });
+        }
+    });
+
+    // Make MUO fields not readonly before submitting the form or else the values won't be submitted
+    $("#report_form").submit(function( event ) {
+        // Only if the whole form is not intended to be readonly
+        if (!$('#report-container').hasClass('readonly')) {
+            var muo_container = $('#custom-muo-container');
+            muo_container.find('input:disabled, textarea:disabled, select:disabled').prop('disabled', false);
+        }
     });
 
 
@@ -57,7 +112,27 @@ jQuery(function() {
         // If there is some already selected misuse case, don't reload the misuse cases again
         var last_selected_misuse_case_id = $('.misuse-case-container.selected').attr("data-value");
         if (last_selected_misuse_case_id == undefined) {
-            load_misusecases([]);
+            var cwe_code_string = '';
+            var delimiter = '';
+
+            // Get all the CWEs selected and loop over it. Value of each selected option is in the format
+            // 'CWE Code'_'CWE Name'. We need to get a string of all the selected CWE codes in comma separated format
+            cwe_select.val().forEach(function(item) {
+                // Append the delimiter value to the CWE code string
+                cwe_code_string = cwe_code_string.concat(delimiter);
+
+                // Split the value on hyphen(-), and get the first element of the array, which is CWE code
+                var code = item.split('_')[0];
+
+                // Concatenate the code in the string of CWE codes
+                cwe_code_string = cwe_code_string.concat(code);
+
+                // Change the delimiter value to ','
+                delimiter = ',';
+            });
+
+            // Load the misuse cases for the selected CWEs
+            load_misusecases(cwe_code_string);
         }
 
         $('#custom-muo-container').hide();
@@ -67,11 +142,11 @@ jQuery(function() {
     $("body").on('click', '#misusecase-custom', function(e){
         // Show the muo creation div. Also hide the muo selection container
         e.preventDefault();
-        $('#id_misuse_case_description').val('');
-        $('#id_use_case_description').val('')
-        $('#id_osr').val('');
         $('#muo-container').hide();
         $('#custom-muo-container').show();
+
+        // Make the is_custom_muo boolean variable true
+        toggl_is_custom_muo(true);
     });
 
     $("body").on('click', '#muo-close', function(e){
@@ -105,6 +180,9 @@ jQuery(function() {
                 $('#muo-container').hide();
                 $('#custom-muo-container').show();
                 populate_muo_fields();
+
+                // Make the is_custom_muo boolean variable true
+                toggl_is_custom_muo(true);
             }
         }
         else {
@@ -116,6 +194,9 @@ jQuery(function() {
             // Hide the muo selection container and show the muo creation div with all the fields disabled
             $('#muo-container').hide();
             $('#custom-muo-container').show();
+
+            // Make the is_custom_muo boolean variable true
+            toggl_is_custom_muo(false);
         }
     });
 
@@ -166,49 +247,11 @@ jQuery(function() {
 });
 
 
-//function load_cwes(description) {
-//    if (description == null || description == '') {
-//        // If description is None or Empty string, it means that either page has loaded for the first time or
-//        // user had clicked 'Suggest CWEs' button without writing any description for the report.
-//        $('#cwe-selection').replaceWith('');
-//    }
-//    else {
-//        // Description is present, we need to make a call to the Enhanced CWE application to get the related CWEs
-//        $.ajax({
-//            url: 'report_report_cwes/',
-//            type: 'POST',
-//            data: {},
-//
-//            success: function (result) {
-//                $('#cwe-selection').replaceWith(result);
-//
-//                alert("Hello" + result);
-//
-//                //var data =  [{ id: 0, text: 'CWE:123 Authentication Bypass by Alternate Name' },
-//                //    { id: 1, text: 'CWE:456 Authentication Bypass by Spoofing' },
-//                //    { id: 2, text: 'CWE:789 Buffer Overflow' },
-//                //    { id: 3, text: 'CWE:086 Authentication Bypass by Alternate Name' },
-//                //    { id: 4, text: 'CWE:256 Invalid Filed Traversal' }]
-//
-//                $(".cwe-select-multiple").select2({
-//                    data: data
-//                });
-//
-//            },
-//
-//            error: function (xhr, errmsg, err) {
-//                alert("Oops! We have encountered and error \n" + errmsg);
-//            }
-//        });
-//    }
-//}
-
-
-function load_misusecases(cwe_ids) {
+function load_misusecases(cwe_codes_string) {
     $.ajax({
         url: 'report_report_misusecases/',
         type: 'POST',
-        data: {cwe_ids: cwe_ids}, // Send the selected CWE ids
+        data: {cwe_codes: cwe_codes_string}, // Send the selected CWE codes
 
         success: function(result) {
             $('.slim-scroll-div').replaceWith(result);
@@ -277,5 +320,10 @@ function populate_muo_fields() {
     $('#id_misuse_case_description').val(selected_misuse_case_div.find('.misuse-case-div').text().trim());
     $('#id_use_case_description').val(selected_use_case_div.find('.use-case-div').text().trim());
     $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
+}
 
+function toggl_is_custom_muo(is_muo_custom) {
+    // Change the value of the hidden field
+    $("#custom-muo-flag").attr("value", is_muo_custom);
+    $('#custom-muo-container textarea').attr('disabled', !is_muo_custom);
 }
