@@ -51,7 +51,6 @@ class ReportForm(forms.ModelForm):
         return self.instance.name
 
 
-
     def clean_cwes(self):
         if not self.instance.id or self.data.get('cwe_changed') == 'true':
             selected_cwes = self.data.getlist('selected_cwes')

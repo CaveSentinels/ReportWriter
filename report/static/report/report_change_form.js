@@ -2,11 +2,11 @@ jQuery(function() {
 
     // handle form readonly layout
     $(".readonly input, .readonly textarea, .readonly select").attr('disabled', 'true');
-    $(".readonly button").hide()
-    $(".readonly #id_selected_cwes").css("width", "100%")
+    $(".readonly button").hide();
+    $(".readonly #id_selected_cwes").css("width", "100%");
 
-    var cwe_select = $("#id_selected_cwes")
-    var page_limit = cwe_select.data('page-limit')
+    var cwe_select = $("#id_selected_cwes");
+    var page_limit = cwe_select.data('page-limit');
 
     // Make CWE selection a multiple ajax select2
     cwe_select.select2({
@@ -63,7 +63,7 @@ jQuery(function() {
 
     // get CWE suggestions
     $("body").on('click', '#cwe-suggestion-button', function(e){
-        var description = $('#id_description').val()
+        var description = $('#id_description').val();
         if (description) {
             // Description is present, we need to make a call to the Enhanced CWE application to get the related CWEs
             $.ajax({
@@ -100,7 +100,8 @@ jQuery(function() {
 
             // Get all the CWEs selected and loop over it. Value of each selected option is in the format
             // 'CWE Code'_'CWE Name'. We need to get a string of all the selected CWE codes in comma separated format
-            cwe_select.val().each(function(){
+            //cwe_select.val().each(function(){
+            $('#id_selected_cwes  option:selected').each(function() {
                 // Append the delimiter value to the CWE code string
                 cwe_code_string = cwe_code_string.concat(delimiter);
 
@@ -128,11 +129,11 @@ jQuery(function() {
     $("body").on('click', '#misusecase-custom', function(e){
         // Show the muo creation div. Also hide the muo selection container
         e.preventDefault();
-        $('#id_misuse_case_description').val('');
-        $('#id_use_case_description').val('');
-        $('#id_osr').val('');
         $('#muo-container').hide();
         $('#custom-muo-container').show();
+
+        // Make the is_custom_muo boolean variable true
+        toggl_is_custom_muo(true);
     });
 
     $("body").on('click', '#muo-close', function(e){
@@ -166,6 +167,9 @@ jQuery(function() {
                 $('#muo-container').hide();
                 $('#custom-muo-container').show();
                 populate_muo_fields();
+
+                // Make the is_custom_muo boolean variable true
+                toggl_is_custom_muo(true);
             }
         }
         else {
@@ -177,6 +181,9 @@ jQuery(function() {
             // Hide the muo selection container and show the muo creation div with all the fields disabled
             $('#muo-container').hide();
             $('#custom-muo-container').show();
+
+            // Make the is_custom_muo boolean variable true
+            toggl_is_custom_muo(false);
         }
     });
 
@@ -300,5 +307,10 @@ function populate_muo_fields() {
     $('#id_misuse_case_description').val(selected_misuse_case_div.find('.misuse-case-div').text().trim());
     $('#id_use_case_description').val(selected_use_case_div.find('.use-case-div').text().trim());
     $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
+}
 
+function toggl_is_custom_muo(is_muo_custom) {
+    // Change the value of the hidden field
+    $("#custom-muo-flag").attr("value", is_muo_custom);
+    $('#custom-muo-container textarea').attr('disabled', !is_muo_custom);
 }

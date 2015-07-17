@@ -6,7 +6,7 @@ class rest_api:
     ENHANCED_CWE_BASE_URL = 'http://localhost:9000/api/v1'
 
     # API Key
-    ENHANCED_CWE_API_KEY = 'Token ab19b8117f23335e428a1c4acfe6f876676a65b4'
+    ENHANCED_CWE_API_KEY = 'Token f9a62b1c40ff2a42325cbadec77cfc2351807898'
 
     @staticmethod
     def get_header():
@@ -62,6 +62,24 @@ class rest_api:
         '''
         payload = {'text': description}
         url_string = '%s/cwe/text_related' % rest_api.ENHANCED_CWE_BASE_URL
+        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+        return rest_api.process_response(response)
+
+    @staticmethod
+    def get_cwes_with_search_string(search_string, offset, limit):
+        '''
+        This method makes a REST call to Enhanced CWE system to search the cwe based on one of the following arguments:
+        :param search_string: string to be searched in code and name
+        :param offset: An offset value indicating the id of the CWE where to start search from
+        :param limit: Limit indicating the maximum number of results to return
+        :return: Returns a dictionary containing whether the request was successful or not. If the request was not
+                 successful, the dictionary also contains the descriptive error message. If the request was successful,
+                 the dictionary also contains the list of the CWEs returned from the Enhanced CWE application
+        '''
+        payload = {'search_str': search_string,
+                   'offset': offset,
+                   'limit': limit}
+        url_string = '%s/cwe/search_str' % rest_api.ENHANCED_CWE_BASE_URL
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 

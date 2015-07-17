@@ -98,7 +98,10 @@
                             </button>
                         </div>
 
-                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px" hidden>
+                        <div class="form-group" id="custom-muo-container" style="margin-left: 0px" {% if not object_id %}hidden{% endif %}>
+
+                            <!--This will be updated whenever custom muo status is changed. It is used in response_change()-->
+                            <input type="hidden" id=custom-muo-flag value=true name=custom-muo-flag/>
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Misuse Case:</label>
