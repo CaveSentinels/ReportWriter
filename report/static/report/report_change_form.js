@@ -1,7 +1,7 @@
 jQuery(function() {
 
     // handle form readonly layout
-    $(".readonly input, .readonly textarea, .readonly select").attr('disabled', 'true');
+    $(".readonly input, .readonly textarea, .readonly select").prop('disabled', true);
     $(".readonly button").hide();
     $(".readonly #id_selected_cwes").css("width", "100%");
 
@@ -83,6 +83,15 @@ jQuery(function() {
                     alert("Oops! We have encountered and error \n" + errmsg);
                 }
             });
+        }
+    });
+
+    // Make MUO fields not readonly before submitting the form or else the values won't be submitted
+    $("#report_form").submit(function( event ) {
+        // Only if the whole form is not intended to be readonly
+        if (!$('#report-container').hasClass('readonly')) {
+            var muo_container = $('#custom-muo-container');
+            muo_container.find('input:disabled, textarea:disabled, select:disabled').prop('disabled', false);
         }
     });
 

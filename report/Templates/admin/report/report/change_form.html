@@ -21,7 +21,7 @@
     {% with adminform.form as form %}
 
 
-        <div class="fieldset-box col-md-12 {% if readonly %}readonly{% endif %}">
+        <div id="report-container" class="fieldset-box col-md-12 {% if readonly %}readonly{% endif %}">
             <div class="box box-primary">
                 <div class="box-body">
 
@@ -134,7 +134,6 @@
                                 {{ form.osr|attr:"rows:5"|as_crispy_field }}
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
