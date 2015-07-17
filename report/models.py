@@ -3,6 +3,7 @@ from base.models import BaseModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from signals import *
+from ReportWriter.rest_api import rest_api
 
 
 STATUS = [('draft', 'Draft'),
@@ -139,6 +140,16 @@ class Report(BaseModel):
 
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
+
+    def action_promote(self):
+        self.promoted = True
+        self.save()
+        cwe_codes = [c['code'] for c in self.cwes.values('code')]
+
+        muo_saved=rest_api.save_muos_to_enhanced_cwe(cwe_codes=str(cwe_codes).strip('[]'),misuse_case_description=self.misuse_case_description,
+                                                   use_case_description=self.use_case_description,osr_description=self.osr)
+        return muo_saved
+
 
 @receiver(post_save, sender=Report, dispatch_uid='report_post_save_signal')
 def post_save_report(sender, instance, created, using, **kwargs):
