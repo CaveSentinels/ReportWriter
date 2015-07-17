@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'register_approval',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -69,7 +70,7 @@ EMAIL_HOST_PASSWORD = 'reportwriting_masre'
 
 # START: allauth settings
 LOGIN_REDIRECT_URL = '/app/'
-ACCOUNT_FORMS = {'signup': 'register.forms.CustomSingupForm',
+ACCOUNT_FORMS = {'signup': 'register.forms.CustomSignupForm',
                  'login': 'register.forms.CaptchaLoginForm',
                  }
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
@@ -77,10 +78,16 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 # END
 
+# START: register settings
+ACCOUNT_EXTRA_PRE_LOGIN_STEPS = ['invitation.utils.verify_email_if_invited',
+                                 'register_approval.utils.check_admin_approval']
+# END
+
 # START: Capcha settings
 RECAPTCHA_PUBLIC_KEY = '6LeuwggTAAAAAGXDRJ0uFgVGPJZLhZdBRdUK1O87'
 RECAPTCHA_PRIVATE_KEY = '6LeuwggTAAAAAFssdSpwuDFw-V3-W64Pn9OM-mXs'
 NOCAPTCHA=False
+RECAPTCHA_USE_SSL = True
 # END
 
 
