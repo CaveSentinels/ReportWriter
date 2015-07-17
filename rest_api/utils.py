@@ -1,12 +1,20 @@
 import requests
+from .models import *
+
+def set_up_params():
+    if RESTConfiguration.objects.exists():
+        config = RESTConfiguration.objects.all()[0]
+        return config.url, 'Token %s' % config.token
+    else:
+        return None, None
 
 class rest_api:
 
     # Base URL of the Enhanced CWE Application
-    ENHANCED_CWE_BASE_URL = 'http://localhost:9000/api/v1'
+    ENHANCED_CWE_BASE_URL = set_up_params()[0]
 
     # API Key
-    ENHANCED_CWE_API_KEY = 'Token ab19b8117f23335e428a1c4acfe6f876676a65b4'
+    ENHANCED_CWE_API_KEY = set_up_params()[1]
 
     @staticmethod
     def get_header():
@@ -150,4 +158,3 @@ class rest_api:
         url_string = '%s/custom_muo/save' % rest_api.ENHANCED_CWE_BASE_URL
         response = requests.post(url_string, data=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
-

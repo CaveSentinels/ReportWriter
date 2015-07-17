@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
 
 from base.admin import BaseAdmin
-from ReportWriter.rest_api import rest_api
+from rest_api.utils import rest_api
 from models import *
 from .settings import SELECT_CWE_PAGE_LIMIT
 
