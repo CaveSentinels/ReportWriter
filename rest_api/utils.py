@@ -1,20 +1,20 @@
 import requests
 from .models import *
 
-def set_up_params():
-    if RESTConfiguration.objects.exists():
-        config = RESTConfiguration.objects.all()[0]
-        return config.url, 'Token %s' % config.token
-    else:
-        return None, None
 
 class rest_api:
 
-    # Base URL of the Enhanced CWE Application
-    ENHANCED_CWE_BASE_URL = set_up_params()[0]
-
-    # API Key
-    ENHANCED_CWE_API_KEY = set_up_params()[1]
+    @staticmethod
+    def get_url():
+        '''
+        Returns the URL of REST API server
+        :return: A string containing the URL
+        '''
+        if RESTConfiguration.objects.exists():
+            config = RESTConfiguration.objects.all()[0]
+            return config.url
+        else:
+            return None
 
     @staticmethod
     def get_header():
@@ -22,7 +22,12 @@ class rest_api:
         Creates a dictionary of the things to be passed in the REST requests header
         :return: A dictionary containing the API key
         '''
-        return {'Authorization': rest_api.ENHANCED_CWE_API_KEY}
+        if RESTConfiguration.objects.exists():
+            config = RESTConfiguration.objects.all()[0]
+            return {'Authorization': 'Token %s' % config.token}
+        else:
+            return {}
+
 
     @staticmethod
     def process_response(response):
@@ -69,7 +74,7 @@ class rest_api:
                  the dictionary also contains the list of the CWEs returned from the Enhanced CWE application
         '''
         payload = {'text': description}
-        url_string = '%s/cwe/text_related' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/cwe/text_related' % rest_api.get_url()
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 
@@ -87,7 +92,7 @@ class rest_api:
         payload = {'search_str': search_string,
                    'offset': offset,
                    'limit': limit}
-        url_string = '%s/cwe/search_str' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/cwe/search_str' % rest_api.get_url()
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 
@@ -107,7 +112,7 @@ class rest_api:
                    'name_contains': name_search_string,
                    'offset': offset,
                    'limit': limit}
-        url_string = '%s/cwe/all' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/cwe/all' % rest_api.get_url()
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 
@@ -121,7 +126,7 @@ class rest_api:
                  the dictionary also contains the list of the misuse cases returned from the Enhanced CWE application
         '''
         payload = {'cwes': str(cwe_codes)}
-        url_string = '%s/misuse_case/cwe_related' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/misuse_case/cwe_related' % rest_api.get_url()
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 
@@ -135,7 +140,7 @@ class rest_api:
                  the dictionary also contains the list of the use cases returned from the Enhanced CWE application
         '''
         payload = {'misuse_cases': str(misuse_case_ids)}
-        url_string = '%s/use_case/misuse_case_related' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/use_case/misuse_case_related' % rest_api.get_url()
         response = requests.get(url_string, params=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
 
@@ -155,6 +160,6 @@ class rest_api:
                    'muc': str(misuse_case_description),
                    'uc': str(use_case_description),
                    'osr': str(osr_description)}
-        url_string = '%s/custom_muo/save' % rest_api.ENHANCED_CWE_BASE_URL
+        url_string = '%s/custom_muo/save' % rest_api.get_url()
         response = requests.post(url_string, data=payload, headers=rest_api.get_header())
         return rest_api.process_response(response)
