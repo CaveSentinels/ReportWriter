@@ -173,7 +173,7 @@ class ReportAdmin(BaseAdmin):
 
         report_id = request.GET.get('report_id')
 
-        if report_id:
+        if report_id and report_id != 'None':
             report = Report.objects.get(pk=report_id)
             cwes = report.cwes.all()
 
@@ -181,6 +181,8 @@ class ReportAdmin(BaseAdmin):
                 results = [{'id': '%s_%s' % (c.code, c.name),
                             'text': 'CWE-%s: %s' % (c.code, c.name)} for c in cwes]
                 return JsonResponse({'items': results})
+        else:
+            return JsonResponse({'items': None})
 
 
     def get_cwes_view(self, request):
@@ -195,8 +197,8 @@ class ReportAdmin(BaseAdmin):
 
         if cwes['success']:
             results = [{'id': '%s_%s' % (c['code'], c['name']),
-                        'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']]
-            return JsonResponse({'items': results, 'total_count': 17}) # TODO: replace total_count
+                        'text': 'CWE-%s: %s' % (c['code'], c['name'])} for c in cwes['obj']['cwe_objects']] # TODO: ask robin to change this
+            return JsonResponse({'items': results, 'total_count': cwes['obj']['total_count']}) # TODO: replace total_count
         else:
             return JsonResponse({'err': cwes['msg']})
 

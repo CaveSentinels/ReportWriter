@@ -44,24 +44,32 @@ jQuery(function() {
     });
 
     // populate CWEs with initial data
-    var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
-    $request.then(function (data) {
+    if (cwe_select.data('report-id')) {
+        var $request = $.ajax({url: cwe_select.data('init-url'), data: {'report_id': cwe_select.data('report-id')} });
+        $request.then(function (data) {
 
-        var cwes = data.items
-        for (var i = 0; i < cwes.length; i++) {
-            var item = cwes[i];
-            var option = new Option(item.text, item.id, true, true);
+            var cwes = data.items
+            for (var i = 0; i < cwes.length; i++) {
+                var item = cwes[i];
+                var option = new Option(item.text, item.id, true, true);
 
-            cwe_select.append(option);
-        }
+                cwe_select.append(option);
+            }
 
-        cwe_select.trigger('change');
+            cwe_select.trigger('change');
 
+            // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
+            // the switch is added here because we want to listedn for changes after initializing the data
+            cwe_select.change(function() {
+                $('#cwe_changed').val(true);
+            });
+        });
+    } else {
         // a switch to indicate the CWE selection has changed so we do appropriate actions in the views
         cwe_select.change(function() {
             $('#cwe_changed').val(true);
         });
-    });
+    }
 
 
     // get CWE suggestions
@@ -112,16 +120,12 @@ jQuery(function() {
 
             // Get all the CWEs selected and loop over it. Value of each selected option is in the format
             // 'CWE Code'_'CWE Name'. We need to get a string of all the selected CWE codes in comma separated format
-            //cwe_select.val().each(function(){
-            $('#id_selected_cwes  option:selected').each(function() {
+            cwe_select.val().forEach(function(item) {
                 // Append the delimiter value to the CWE code string
                 cwe_code_string = cwe_code_string.concat(delimiter);
 
-                // Get the value of the selected option
-                var cwe_code_and_string = $(this).val();
-
                 // Split the value on hyphen(-), and get the first element of the array, which is CWE code
-                var code = cwe_code_and_string.split('_')[0];
+                var code = item.split('_')[0];
 
                 // Concatenate the code in the string of CWE codes
                 cwe_code_string = cwe_code_string.concat(code);

@@ -53,7 +53,7 @@
                             <select id="id_selected_cwes" name="selected_cwes" multiple="multiple"
                                     data-ajax-url="{% url 'admin:report_report_get_cwes' %}"
                                     data-init-url="{% url 'admin:report_report_init_cwes' %}"
-                                    data-report-id="{{ object_id }}"
+                                    data-report-id="{{ object_id|default_if_none:'' }}"
                                     data-page-limit="{{ cwe_limit }}" style="width:87%"></select>
 
                             <button type="button" class="btn btn-success btn-md" id="cwe-suggestion-button"
