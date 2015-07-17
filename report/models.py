@@ -10,6 +10,7 @@ STATUS = [('draft', 'Draft'),
           ('approved', 'Approved'),
           ('rejected', 'Rejected')]
 
+MUO_STATUS = [('custom', 'Custom'), ('generic', 'Generic')]
 
 class CWE(BaseModel):
     code = models.IntegerField(unique=True)
@@ -52,8 +53,9 @@ class Report(BaseModel):
     use_case_source = models.TextField(null=True, blank=True, verbose_name="Source")
 
     osr = models.TextField(null=True, blank=True, verbose_name="Overlooked Security Requirement")
+
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
-    custom = models.BooleanField('Author has written a custom MUO', default=False, null=False, blank=False)
+    custom = models.CharField(max_length=16, null=True, blank=True)
     promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
 
 

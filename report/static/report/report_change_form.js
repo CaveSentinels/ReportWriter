@@ -5,6 +5,8 @@ jQuery(function() {
     $(".readonly button").hide();
     $(".readonly #id_selected_cwes").css("width", "100%");
 
+    toggl_is_custom_muo($("#custom-muo-flag").val());
+
     var cwe_select = $("#id_selected_cwes");
     var page_limit = cwe_select.data('page-limit');
 
@@ -146,7 +148,7 @@ jQuery(function() {
         $('#custom-muo-container').show();
 
         // Make the is_custom_muo boolean variable true
-        toggl_is_custom_muo(true);
+        toggl_is_custom_muo('custom');
     });
 
     $("body").on('click', '#muo-close', function(e){
@@ -182,7 +184,7 @@ jQuery(function() {
                 populate_muo_fields();
 
                 // Make the is_custom_muo boolean variable true
-                toggl_is_custom_muo(true);
+                 toggl_is_custom_muo('custom');
             }
         }
         else {
@@ -196,7 +198,7 @@ jQuery(function() {
             $('#custom-muo-container').show();
 
             // Make the is_custom_muo boolean variable true
-            toggl_is_custom_muo(false);
+            toggl_is_custom_muo('generic');
         }
     });
 
@@ -322,8 +324,22 @@ function populate_muo_fields() {
     $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
 }
 
-function toggl_is_custom_muo(is_muo_custom) {
-    // Change the value of the hidden field
-    $("#custom-muo-flag").attr("value", is_muo_custom);
-    $('#custom-muo-container textarea').attr('disabled', !is_muo_custom);
+
+function toggl_is_custom_muo(custom_muo_status) {
+    // Get the status of the report
+    var report_status = $('#id_status').val();
+
+    if (report_status == 'draft') {
+        // Change the value of the hidden field
+        $("#custom-muo-flag").attr("value", custom_muo_status);
+
+        if (custom_muo_status == 'custom') {
+            // If custom status is 'custom', enable the custom MUO container div
+            $('#custom-muo-container textarea').prop('disabled', false);
+        }
+        else if (custom_muo_status == 'generic') {
+            // If custom status is 'generic', disable the custom MUO container div
+            $('#custom-muo-container textarea').prop('disabled', true);
+        }
+    }
 }
