@@ -302,11 +302,9 @@ class ReportAdmin(BaseAdmin):
                 msg = "You can now edit the Report"
 
             elif "_promote" in request.POST:
-                muo_saved = obj.action_promote()
-                if muo_saved["success"]:
-                    msg = "The MUO has been promoted to Enhanced CWE Application"
-                else:
-                    msg = "The MUO has not been promoted to Enhanced CWE Application"
+                # action_promote method is invoked on click of promote button
+                muo_saved =obj.action_promote()
+                msg = muo_saved["msg"]
 
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.

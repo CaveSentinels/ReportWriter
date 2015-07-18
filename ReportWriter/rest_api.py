@@ -1,12 +1,13 @@
 import requests
+from requests.exceptions import ConnectionError
 
 class rest_api:
 
     # Base URL of the Enhanced CWE Application
-    ENHANCED_CWE_BASE_URL = 'http://localhost:9000/api/v1'
+    ENHANCED_CWE_BASE_URL = 'http://localhost:8002/api/v1'
 
     # API Key
-    ENHANCED_CWE_API_KEY = 'Token f9a62b1c40ff2a42325cbadec77cfc2351807898'
+    ENHANCED_CWE_API_KEY = 'Token 920b0ef58adcad8ab07e340444c8abf68b15bcfa'
 
     @staticmethod
     def get_header():
@@ -29,18 +30,42 @@ class rest_api:
         success = False
         msg = None
         obj = None
-        if response.status_code == requests.codes.unauthorized:
-            # Authentication Failure
-            msg = 'Authentication Failure. All requests must be authenticated with a valid API Key. ' \
-                  'Please contact the system administrator. Additional error details are: %s' % response.content
+        # TODO This part is not removed because we may make modification to this and uncomment it if required
+        # if response.status_code == requests.codes.unauthorized:
+        #     # Authentication Failure
+        #     msg = 'Authentication Failure. All requests must be authenticated with a valid API Key. ' \
+        #           'Please contact the system administrator. Additional error details are: %s' % response.content
+        # elif response.status_code == requests.codes.bad:
+        #     # Bad Request
+        #     msg = 'There is something wrong in the request. Please check all your inputs correctly.' \
+        #           'Additional error details are: %s' % response.content
+        # elif response.status_code == requests.codes.server_error:
+        #     # Server Error occurred.
+        #     msg = 'Some error has occurred on the server. Please try after some time!' \
+        #           'Additional error details are: %s' % response.content
+        # elif response.status_code == requests.codes.ok:
+        #     # Successful
+        #     success = True
+        #     msg = 'Success'
+        #     if response.headers.get('content-type') == 'application/json':
+        #         # If the response is of type JSON, set the obj
+        #         obj = response.json()
+
+        if type(response).__name__ == 'str':
+            if response == 'ConnectionError':
+                # Server Error occurred.
+                msg = 'Some error has occurred on the server. Please try after some time!'
+
         elif response.status_code == requests.codes.bad:
             # Bad Request
             msg = 'There is something wrong in the request. Please check all your inputs correctly.' \
                   'Additional error details are: %s' % response.content
-        elif response.status_code == requests.codes.server_error:
-            # Server Error occurred.
-            msg = 'Some error has occurred on the server. Please try after some time!' \
-                  'Additional error details are: %s' % response.content
+
+        elif response.status_code == requests.codes.unauthorized:
+            # Authentication Failure
+            msg = 'Authentication Failure. All requests must be authenticated with a valid API Key. ' \
+                  'Please contact the system administrator. Additional error details are: %s' % response.content
+
         elif response.status_code == requests.codes.ok:
             # Successful
             success = True
@@ -148,6 +173,11 @@ class rest_api:
                    'uc': str(use_case_description),
                    'osr': str(osr_description)}
         url_string = '%s/custom_muo/save' % rest_api.ENHANCED_CWE_BASE_URL
-        response = requests.post(url_string, data=payload, headers=rest_api.get_header())
+        # If the EnhancedCWE Application is not running, we get server error. This is not saved in response.
+        # We set the response explicity here and check in the process_response method and handle it accordingly
+        try:
+            response = requests.post(url_string, data=payload, headers=rest_api.get_header())
+        except ConnectionError:
+            response = 'ConnectionError'
         return rest_api.process_response(response)
 

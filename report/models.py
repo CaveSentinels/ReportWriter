@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from signals import *
 from ReportWriter.rest_api import rest_api
+from requests.exceptions import ConnectionError
 
 
 STATUS = [('draft', 'Draft'),
@@ -144,12 +145,17 @@ class Report(BaseModel):
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
 
     def action_promote(self):
-        self.promoted = True
-        self.save()
+        # Get the CWE Code numbers in a list
         cwe_codes = [c['code'] for c in self.cwes.values('code')]
-
-        muo_saved=rest_api.save_muos_to_enhanced_cwe(cwe_codes=str(cwe_codes).strip('[]'),misuse_case_description=self.misuse_case_description,
-                                                   use_case_description=self.use_case_description,osr_description=self.osr)
+        # Invoke the method which makes a rest call to the Enhanced CWE System and saves the MUO in that system
+        # cwe_codes should be in the form of string separated by commas
+        muo_saved = rest_api.save_muos_to_enhanced_cwe(cwe_codes=str(cwe_codes).strip('[]'),misuse_case_description=self.misuse_case_description,
+                                                  use_case_description=self.use_case_description,osr_description=self.osr)
+        if muo_saved["success"]:
+                        muo_saved["msg"] = "The MUO has been promoted to Enhanced CWE Application"
+                        self.promoted = True
+                        self.custom = "generic"
+                        self.save()
         return muo_saved
 
 
