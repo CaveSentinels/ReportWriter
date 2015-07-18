@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
-
+from django.db.models import Q
 from base.admin import BaseAdmin
 from rest_api.utils import rest_api
 from models import *
@@ -115,6 +115,17 @@ class ReportAdmin(BaseAdmin):
         '''
         user = request.user
         return obj and (obj.status != 'draft' or user != obj.created_by or not user.has_perm('report.can_edit_all'))
+
+
+    def get_queryset(self, request):
+        """
+            If user doesn't have access to view all Reports (review), then limit to his own Reports
+            or to approved Reports written by other contributors
+        """
+        qs = super(ReportAdmin, self).get_queryset(request)
+        if request.user.has_perm('report.can_view_all') or request.user.has_perm('report.can_edit_all'):
+            return qs
+        return qs.filter(Q(created_by=request.user) | Q(status='approved'))
 
 
     def get_readonly_fields(self, request, obj=None):
