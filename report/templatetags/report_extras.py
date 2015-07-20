@@ -71,6 +71,38 @@ def report_submit_row(context):
                             model_object.status in ('draft', 'rejected') and
                             (user_object == model_object.created_by or user_object.has_perm('report.can_edit_all')))),
 
+        # Show Report issue button only if the report is approved.
+        'show_report_issue': model_object and
+                             model_object.status in ('approved')
+
+
+
+    })
+
+    return ctx
+
+@register.inclusion_tag('admin/report/issuereport/reportissue_submit_line.html', takes_context=True)
+def reportaction_submit_row(context):
+    ctx = original_submit_row(context)
+
+    model_object = ctx.get('original')
+    user_object = context.get('user')
+    ctx.update({
+        # Show investigate button only when the issue is in open state and the user has approve & reject perm
+        'show_investigate_issue': model_object and
+                                  model_object.status in ('open','reopened') and
+                                  user_object.has_perm('report.can_approve', 'report.can_reject'),
+
+        # Show resolve button only when the issue is in open state and the user has approve & reject perm
+        'show_resolve_issue': model_object and
+                              model_object.status == 'investigating' and
+                              user_object.has_perm('report.can_approve', 'report.can_reject'),
+        'show_reopen_issue': model_object and
+                             model_object.status == 'resolved' and
+                             user_object.has_perm('report.can_approve', 'report.can_reject'),
+        'show_open_issue': model_object and
+                           model_object.status == 'investigating' and
+                           user_object.has_perm('report.can_approve', 'report.can_reject'),
 
     })
 

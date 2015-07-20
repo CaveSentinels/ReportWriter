@@ -1,9 +1,11 @@
+from base.models import BaseModel
+from signals import *
 from django.db import models
+from django.conf import settings
 from base.models import BaseModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from signals import *
-
+from django.utils import timezone
 
 STATUS = [('draft', 'Draft'),
           ('in_review', 'In Review'),
@@ -147,4 +149,102 @@ def post_save_report(sender, instance, created, using, **kwargs):
     """ Set the value of the field 'name' after creating the object """
     if created:
         instance.name = "Report-{0:05d}".format(instance.id)
+        instance.save()
+
+
+STATUS = [('draft', 'Draft'),
+          ('in_review', 'In Review'),
+          ('approved', 'Approved'),
+          ('rejected', 'Rejected')]
+
+ISSUE_TYPES = [('incorrect', 'Incorrect Content'),
+                ('spam', 'Spam'),
+                ('duplicate', 'Duplicate')]
+
+ISSUE_STATUS = [('open', 'Open'),
+                 ('investigating', 'Investigating'),
+                ('reopened','Re-opened'),
+                 ('resolved', 'Resolved')]
+
+
+class IssueReport(BaseModel):
+    name = models.CharField(max_length=16, null=True, blank=True, db_index=True, default="/")
+    description = models.TextField(null=True, blank=True)
+    type = models.CharField(choices=ISSUE_TYPES, max_length=64)
+    status = models.CharField(choices=ISSUE_STATUS, max_length=64, db_index=True, default='open')
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='issue_reports')
+    report_duplicate = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True)
+    resolve_reason = models.TextField(null=True, blank=True, default="/")
+
+    class Meta:
+        verbose_name = "Issue Report"
+        verbose_name_plural = "Issue Reports"
+
+    def __unicode__(self):
+        return self.name
+
+    def action_investigate(self, reviewer= None):
+        """
+        This method change the status of the issue report object to 'investigating' and This change
+        is allowed only if the current status is either open or re open.
+        """
+        if self.status in ('open','reopened'):
+            self.status = 'investigating'
+            self.reviewed_at = timezone.now()
+            self.reviewed_by = reviewer
+            self.save()
+
+        else:
+            raise ValueError("In order to investigate a report, it should be in open or re-open state")
+
+    def action_resolve(self, resolve_reason, reviewer= None):
+        """
+        This method change the status of the issue report object to 'resolved' and This change
+        is allowed only if the current status is 'investigating'.
+        """
+        if self.status == 'investigating':
+            self.status = 'resolved'
+            # Get the current date when it got resolved
+            # TODO: This has to be used in future
+            self.reviewed_by = reviewer
+            self.reviewed_at = timezone.now()
+            self.resolve_reason = resolve_reason
+            self.save()
+        else:
+            raise ValueError("In order to resolve a report, it should be in investigating state")
+
+    def action_reopen(self, reviewer=None):
+        """
+        This method change the status of the issue report object to 're open' and This change
+        is allowed only if the current status is 'investigating' or 'resolved'.
+        """
+        if self.status == 'resolved':
+            self.status = 'reopened'
+            self.reviewed_by = reviewer
+            self.reviewed_at = timezone.now()
+            self.save()
+        else:
+            raise ValueError("In order to re open an issue it should be in resolved state")
+
+    def action_open(self,reviewer= None):
+        """
+        This method change the status of the issue report object to 'open' and This change
+        is allowed only if the current status is 'investigating'.
+        """
+        if self.status == 'investigating':
+            self.status = 'open'
+            self.reviewed_at = timezone.now()
+            self.reviewed_by = reviewer
+            self.save()
+        else:
+            raise ValueError("In order to open an issue it should be in open state")
+
+
+@receiver(post_save, sender=IssueReport, dispatch_uid='issue_report_post_save_signal')
+def post_save_issue_report(sender, instance, created, using, **kwargs):
+    """ Set the value of the field 'name' after creating the object """
+    if created:
+        instance.name = "Issue/{0:05d}".format(instance.id)
         instance.save()

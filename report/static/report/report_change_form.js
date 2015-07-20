@@ -246,6 +246,28 @@ jQuery(function() {
         var value = $(this).val();
         set_placeholder(value);
     });
+
+    // Send an AJAX call to a view behind. You have to load your own HTML in the model.
+    $("#report-issue-modal").on("show.bs.modal", function (e) {
+        debugger;
+        var report_id = $(e.relatedTarget).data('report-id');
+        var url = $(e.relatedTarget).data('ajax-url');
+        // Load the report issue dialog
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {report_id: report_id}, // Send the selected report id
+
+            success: function(result) {
+                $(e.currentTarget).html(result);
+            },
+
+            error: function(xhr,errmsg,err) {
+                // Show error message in the alert
+                alert("Oops! We have encountered and error \n" + errmsg);
+            }
+        });
+    });
 });
 
 
