@@ -14,6 +14,11 @@ STATUS = [('draft', 'Draft'),
 
 MUO_STATUS = [('custom', 'Custom'), ('generic', 'Generic')]
 
+OSR_PATTERN_CHOICES = [('ubiquitous', 'Ubiquitous'),
+                       ('event-driven', 'Event-Driven'),
+                       ('unwanted behavior', 'Unwanted Behavior'),
+                       ('state-driven', 'State-Driven')]
+
 class CWE(BaseModel):
     code = models.IntegerField(unique=True)
     name = models.CharField(max_length=128)
@@ -54,6 +59,12 @@ class Report(BaseModel):
     use_case_assumption = models.TextField(null=True, blank=True, verbose_name="Assumption")
     use_case_source = models.TextField(null=True, blank=True, verbose_name="Source")
 
+    osr_pattern_type = models.CharField(max_length=32,
+                                        null=True,
+                                        blank=False,
+                                        choices=OSR_PATTERN_CHOICES,
+                                        default='ubiquitous',
+                                        verbose_name='Overlooked security requirements pattern type')
     osr = models.TextField(null=True, blank=True, verbose_name="Overlooked Security Requirement")
 
     status = models.CharField(choices=STATUS, max_length=64, default='draft')

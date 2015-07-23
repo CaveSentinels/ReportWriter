@@ -9,6 +9,10 @@ jQuery(function() {
 
     var cwe_select = $("#id_selected_cwes");
     var page_limit = cwe_select.data('page-limit');
+    var osr_pattern_type_element = $("#id_osr_pattern_type");
+
+    // Set the placeholder for the OSR field
+    set_placeholder(osr_pattern_type_element.val());
 
     // Make CWE selection a multiple ajax select2
     cwe_select.select2({
@@ -241,11 +245,11 @@ jQuery(function() {
         }
     });
 
-    $("input[name='osr-pattern']").change(function(){
-        // Set the placeholder based on the selection
-        var value = $(this).val();
-        set_placeholder(value);
+    osr_pattern_type_element.change(function() {
+        var selected_type = osr_pattern_type_element.val();
+        set_placeholder(selected_type);
     });
+
 
     // Send an AJAX call to a view behind. You have to load your own HTML in the model.
     $("#report-issue-modal").on("show.bs.modal", function (e) {
@@ -310,30 +314,30 @@ function load_usecases(misuse_case_id) {
 function set_placeholder(value) {
     var placeholder = 'Please write the requirements in the following format:\n';
     var addendum;
-    switch(parseInt(value)) {
-        case 1:
-            addendum = "The <system name> shall <system response>\n\n" +
-                                "Example: The software shall be written in Java";
-            break;
-        case 2:
-            addendum = "WHEN <trigger> <optional precondition> the <system name> shall <system respons>\n\n" +
-                                "Example: When a DVD is inserted into the DVD player, the OS shall spin up the optical drive";
-            break;
-        case 3:
-            addendum = "IF <unwanted condition or event>, THEN the <system name> shall <system response>\n\n" +
-                                "Example: If the memory checksum is invalid, then the software shall display an error message";
-            break;
-        case 4:
-            addendum = "WHILE <system state>, the <system name> shall <system response>\n\n" +
-                                "Example: While the heater is on, the software shall close the water intake valve";
-            break;
-        default:
-            addendum = '';
+
+    if (value == "ubiquitous") {
+        addendum = "The <system name> shall <system response>\n\n" +
+                        "Example: The software shall be written in Java";
+    }
+    else if (value == "event-driven") {
+        addendum = "WHEN <trigger> <optional precondition> the <system name> shall <system respons>\n\n" +
+                        "Example: When a DVD is inserted into the DVD player, the OS shall spin up the optical drive";
+    }
+    else if (value == "unwanted behavior") {
+        addendum = "IF <unwanted condition or event>, THEN the <system name> shall <system response>\n\n" +
+                        "Example: If the memory checksum is invalid, then the software shall display an error message";
+    }
+    else if (value == "state-driven") {
+        addendum = "WHILE <system state>, the <system name> shall <system response>\n\n" +
+                        "Example: While the heater is on, the software shall close the water intake valve";
+    }
+    else {
+        addendum = '';
     }
     placeholder = placeholder.concat(addendum);
 
     // Set the placeholder of the OSR text area
-    $('#osr-description').attr("placeholder", placeholder);
+    $("#id_osr").prop("placeholder", placeholder);
 }
 
 
