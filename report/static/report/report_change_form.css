@@ -6,10 +6,9 @@
 
 #muo-container .muo-title-header {
     width: 100%;
-    border-right: thin double;
-    border-color: #e7eaec;
-    margin-left: 15px;
     text-align: center;
+    margin: 0px;
+    padding-bottom: 0px;
 }
 
 #muo-container .slim-scroll-div {
@@ -20,8 +19,8 @@
     overflow-y: scroll;
     overflow-x:hidden;
     margin-top: 0px;
-    /*border-width: thick;*/
     border-right: thin double;
+    border-bottom: thin double;
     border-color: #e7eaec;
 }
 
@@ -36,16 +35,21 @@
     margin-bottom: 0px;
 }
 
+/*.misuse-case-container {*/
+    /*border-right: thin double;*/
+    /*border-bottom: thin double;*/
+    /*border-color: #e7eaec;*/
+/*}*/
+
 .misuse-case-container:hover,
     .muo-search-container .misuse-case-container.selected {
     background-color: #ecf0f5;
     cursor: pointer;
 }
 
-.misuse-case-header {
-    /*border-right: thin double;*/
-    /*border-color: #e7eaec;*/
+.misuse-case-header, .use-case-header{
     padding: 15px;
+    padding-top: 0px;
 }
 
 .usecase-footer {
@@ -55,8 +59,7 @@
 .misuse-case-div {
     width: 100%;
     padding: 15px;
-    /*border-right: thin double;*/
-    border-bottom: thin double;
+    padding-bottom: 0px;
     border-color: #e7eaec;
     background-color: transparent;
     margin-top: 0px;
@@ -76,8 +79,10 @@
 .use-case-container .use-case-div {
     width: 100%;
     padding: 15px;
-    border-bottom: thin double;
+    padding-bottom: 0px;
     border-color: #e7eaec;
+    background-color: transparent;
+    margin-top: 0px;
 }
 
 .use-case-container .osr-div {
@@ -110,5 +115,33 @@
 }
 
 
+.misuse-case-container #misuse-case-name-label,
+    .use-case-container #use-case-name-label{
+    margin-bottom: 5px;
+    font-weight: 700 !important;
+    font-size: 14px;
+    color: #333;
+}
+
+
+.misuse-case-div .heading, .use-case-div .heading {
+    margin-bottom: 0px;
+    font-weight: 400 !important;
+    font-size: 14px;
+    color: #333;
+}
+
+.misuse-case-div .text, .use-case-div .text {
+    font-weight: 300 !important;
+    font-size: 14px;
+    color: #333;
+}
+
+.use-case-div .osr-heading {
+    margin-bottom: 0px;
+    font-weight: 700 !important;
+    font-size: 14px;
+    color: #333;
+}
 
 

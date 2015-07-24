@@ -9,6 +9,10 @@ jQuery(function() {
 
     var cwe_select = $("#id_selected_cwes");
     var page_limit = cwe_select.data('page-limit');
+    var osr_pattern_type_element = $("#id_osr_pattern_type");
+
+    // Set the placeholder for the OSR field
+    set_placeholder(osr_pattern_type_element.val());
 
     // Make CWE selection a multiple ajax select2
     cwe_select.select2({
@@ -113,7 +117,7 @@ jQuery(function() {
 
         // If there is some already selected misuse case, don't reload the misuse cases again
         var last_selected_misuse_case_id = $('.misuse-case-container.selected').attr("data-value");
-        if (last_selected_misuse_case_id == undefined) {
+        //if (last_selected_misuse_case_id == undefined) {
             var cwe_code_string = '';
             var delimiter = '';
 
@@ -135,7 +139,7 @@ jQuery(function() {
 
             // Load the misuse cases for the selected CWEs
             load_misusecases(cwe_code_string);
-        }
+        //}
 
         $('#custom-muo-container').hide();
         $('#muo-container').show();
@@ -241,11 +245,11 @@ jQuery(function() {
         }
     });
 
-    $("input[name='osr-pattern']").change(function(){
-        // Set the placeholder based on the selection
-        var value = $(this).val();
-        set_placeholder(value);
+    osr_pattern_type_element.change(function() {
+        var selected_type = osr_pattern_type_element.val();
+        set_placeholder(selected_type);
     });
+
 
     // Send an AJAX call to a view behind. You have to load your own HTML in the model.
     $("#report-issue-modal").on("show.bs.modal", function (e) {
@@ -310,40 +314,76 @@ function load_usecases(misuse_case_id) {
 function set_placeholder(value) {
     var placeholder = 'Please write the requirements in the following format:\n';
     var addendum;
-    switch(parseInt(value)) {
-        case 1:
-            addendum = "The <system name> shall <system response>\n\n" +
-                                "Example: The software shall be written in Java";
-            break;
-        case 2:
-            addendum = "WHEN <trigger> <optional precondition> the <system name> shall <system respons>\n\n" +
-                                "Example: When a DVD is inserted into the DVD player, the OS shall spin up the optical drive";
-            break;
-        case 3:
-            addendum = "IF <unwanted condition or event>, THEN the <system name> shall <system response>\n\n" +
-                                "Example: If the memory checksum is invalid, then the software shall display an error message";
-            break;
-        case 4:
-            addendum = "WHILE <system state>, the <system name> shall <system response>\n\n" +
-                                "Example: While the heater is on, the software shall close the water intake valve";
-            break;
-        default:
-            addendum = '';
+
+    if (value == "ubiquitous") {
+        addendum = "The <system name> shall <system response>\n\n" +
+                        "Example: The software shall be written in Java";
+    }
+    else if (value == "event-driven") {
+        addendum = "WHEN <trigger> <optional precondition> the <system name> shall <system respons>\n\n" +
+                        "Example: When a DVD is inserted into the DVD player, the OS shall spin up the optical drive";
+    }
+    else if (value == "unwanted behavior") {
+        addendum = "IF <unwanted condition or event>, THEN the <system name> shall <system response>\n\n" +
+                        "Example: If the memory checksum is invalid, then the software shall display an error message";
+    }
+    else if (value == "state-driven") {
+        addendum = "WHILE <system state>, the <system name> shall <system response>\n\n" +
+                        "Example: While the heater is on, the software shall close the water intake valve";
+    }
+    else {
+        addendum = '';
     }
     placeholder = placeholder.concat(addendum);
 
     // Set the placeholder of the OSR text area
-    $('#osr-description').attr("placeholder", placeholder);
+    $("#id_osr").prop("placeholder", placeholder);
 }
 
 
 function populate_muo_fields() {
-    var selected_misuse_case_div = $('.misuse-case-container.selected');
-    var selected_use_case_div = $('.use-case-container.selected');
+    var selected_misuse_case_div_value = $('.misuse-case-container.selected').attr("data-value");
+    var selected_use_case_div_value = $('.use-case-container.selected').attr("data-value");
 
-    $('#id_misuse_case_description').val(selected_misuse_case_div.find('.misuse-case-div').text().trim());
-    $('#id_use_case_description').val(selected_use_case_div.find('.use-case-div').text().trim());
-    $('#id_osr').val(selected_use_case_div.find('.osr-div').text().trim());
+    var misuse_case_description_id = "misuse-case-description-".concat(selected_misuse_case_div_value);
+    var misuse_case_primary_actor_id = "misuse-case-primary-actor-".concat(selected_misuse_case_div_value);
+    var misuse_case_secondary_actor_id = "misuse-case-secondary-actor-".concat(selected_misuse_case_div_value);
+    var misuse_case_precondition_id = "misuse-case-precondition-".concat(selected_misuse_case_div_value);
+    var misuse_case_flow_of_events_id = "misuse-case-flow-of-events-".concat(selected_misuse_case_div_value);
+    var misuse_case_postcondition_id = "misuse-case-postcondition-".concat(selected_misuse_case_div_value);
+    var misuse_case_assumption_id = "misuse-case-assumption-".concat(selected_misuse_case_div_value);
+    var misuse_case_source_id = "misuse-case-source-".concat(selected_misuse_case_div_value);
+
+    var use_case_description_id = "use-case-description-".concat(selected_use_case_div_value);
+    var use_case_primary_actor_id = "use-case-primary-actor-".concat(selected_use_case_div_value);
+    var use_case_secondary_actor_id = "use-case-secondary-actor-".concat(selected_use_case_div_value);
+    var use_case_precondition_id = "use-case-precondition-".concat(selected_use_case_div_value);
+    var use_case_flow_of_events_id = "use-case-flow-of-events-".concat(selected_use_case_div_value);
+    var use_case_postcondition_id = "use-case-postcondition-".concat(selected_use_case_div_value);
+    var use_case_assumption_id = "use-case-assumption-".concat(selected_use_case_div_value);
+    var use_case_source_id = "use-case-source-".concat(selected_use_case_div_value);
+    var use_case_osr_id = "use-case-osr-".concat(selected_use_case_div_value);
+    var osr_pattern_type = "osr-pattern-type-".concat(selected_use_case_div_value);
+
+    $("#id_misuse_case_description").val(document.getElementById(misuse_case_description_id).textContent.trim());
+    $("#id_misuse_case_primary_actor").val(document.getElementById(misuse_case_primary_actor_id).textContent.trim());
+    $("#id_misuse_case_secondary_actor").val(document.getElementById(misuse_case_secondary_actor_id).textContent.trim());
+    $("#id_misuse_case_precondition").val(document.getElementById(misuse_case_precondition_id).textContent.trim());
+    $("#id_misuse_case_flow_of_events").val(document.getElementById(misuse_case_flow_of_events_id).textContent.trim());
+    $("#id_misuse_case_postcondition").val(document.getElementById(misuse_case_postcondition_id).textContent.trim());
+    $("#id_misuse_case_assumption").val(document.getElementById(misuse_case_assumption_id).textContent.trim());
+    $("#id_misuse_case_source").val(document.getElementById(misuse_case_source_id).textContent.trim());
+
+    $("#id_use_case_description").val(document.getElementById(use_case_description_id).textContent.trim());
+    $("#id_use_case_primary_actor").val(document.getElementById(use_case_primary_actor_id).textContent.trim());
+    $("#id_use_case_secondary_actor").val(document.getElementById(use_case_secondary_actor_id).textContent.trim());
+    $("#id_use_case_precondition").val(document.getElementById(use_case_precondition_id).textContent.trim());
+    $("#id_use_case_flow_of_events").val(document.getElementById(use_case_flow_of_events_id).textContent.trim());
+    $("#id_use_case_postcondition").val(document.getElementById(use_case_postcondition_id).textContent.trim());
+    $("#id_use_case_assumption").val(document.getElementById(use_case_assumption_id).textContent.trim());
+    $("#id_use_case_source").val(document.getElementById(use_case_source_id).textContent.trim());
+    $("#id_osr").val(document.getElementById(use_case_osr_id).textContent.trim());
+    $("#id_osr_pattern_type").val(document.getElementById(osr_pattern_type).value);
 }
 
 
@@ -355,13 +395,17 @@ function toggl_is_custom_muo(custom_muo_status) {
         // Change the value of the hidden field
         $("#custom-muo-flag").attr("value", custom_muo_status);
 
+        // Get all the fields of the custom-muo-container div
+        var custom_muo_container_div_elements = $("#custom-muo-container :input");
+
         if (custom_muo_status == 'custom') {
             // If custom status is 'custom', enable the custom MUO container div
-            $('#custom-muo-container textarea').prop('disabled', false);
+            custom_muo_container_div_elements.prop('disabled', false);
         }
         else if (custom_muo_status == 'generic') {
             // If custom status is 'generic', disable the custom MUO container div
-            $('#custom-muo-container textarea').prop('disabled', true);
+            //$('#custom-muo-container textarea').prop('disabled', true);
+            custom_muo_container_div_elements.prop("disabled", true);
         }
     }
 }
