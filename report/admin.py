@@ -254,8 +254,7 @@ class ReportAdmin(BaseAdmin):
 
         if misuse_cases['success'] is False:
             # There was some error and the REST call was not successful
-            # TODO Handle Error
-            pass
+            raise Http404(misuse_cases['msg'])
 
         # Set the context
         context = {'misuse_cases': misuse_cases['obj']}
@@ -275,8 +274,7 @@ class ReportAdmin(BaseAdmin):
 
         if use_cases['success'] is False:
             # There was some error and the REST call was not successful
-            # TODO Handle Error
-            pass
+            raise Http404(use_cases['msg'])
 
         context = {'use_cases': use_cases['obj']}
 

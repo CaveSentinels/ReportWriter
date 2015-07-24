@@ -1,5 +1,7 @@
 import requests
+from requests.exceptions import ConnectionError
 from .models import *
+import json
 
 
 class rest_api:
@@ -27,7 +29,6 @@ class rest_api:
             return {'Authorization': 'Token %s' % config.token}
         else:
             return {}
-
 
     @staticmethod
     def process_response(response):
@@ -65,6 +66,14 @@ class rest_api:
         return {'success': success, 'msg': msg, 'obj': obj}
 
     @staticmethod
+    def handle_server_connection_error():
+        '''
+        This method handles the server connection error
+        :return: A dictionary containing the failure flag and error message
+        '''
+        return {'success': False, 'msg': 'Cannot connect to Enhanced CWE system', 'obj': None}
+
+    @staticmethod
     def get_cwes_for_description(description):
         '''
         This method makes a REST call to Enhanced CWE system to get the related CWEs for the report description
@@ -75,8 +84,11 @@ class rest_api:
         '''
         payload = {'text': description}
         url_string = '%s/cwe/text_related' % rest_api.get_url()
-        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
 
     @staticmethod
     def get_cwes_with_search_string(search_string, offset, limit):
@@ -93,8 +105,11 @@ class rest_api:
                    'offset': offset,
                    'limit': limit}
         url_string = '%s/cwe/search_str' % rest_api.get_url()
-        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
 
     @staticmethod
     def get_cwes(code, name_search_string, offset, limit):
@@ -113,8 +128,11 @@ class rest_api:
                    'offset': offset,
                    'limit': limit}
         url_string = '%s/cwe/all' % rest_api.get_url()
-        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
 
     @staticmethod
     def get_misuse_cases(cwe_codes):
@@ -127,8 +145,11 @@ class rest_api:
         '''
         payload = {'cwes': str(cwe_codes)}
         url_string = '%s/misuse_case/cwe_related' % rest_api.get_url()
-        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
 
     @staticmethod
     def get_use_cases(misuse_case_ids):
@@ -141,25 +162,30 @@ class rest_api:
         '''
         payload = {'misuse_cases': str(misuse_case_ids)}
         url_string = '%s/use_case/misuse_case_related' % rest_api.get_url()
-        response = requests.get(url_string, params=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.get(url_string, params=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
+
 
     @staticmethod
-    def save_muos_to_enhanced_cwe(cwe_codes, misuse_case_description, use_case_description, osr_description):
+    def save_muos_to_enhanced_cwe(cwe_codes, misuse_case, use_case):
         '''
         This method makes a REST call to Enhanced CWE system to save the misuse case, use case and overlooked security
         requirements to the Enhanced CWE system
-        :param cwe_codes: A comma separated string of CWE codes
-        :param misuse_case_description: A string which is the description of the misuse case
-        :param use_case_description: A string which is the description of the use case
-        :param osr_description: A string representing the description of the osr
+        :param cwe_codes: A list of integers representing cwe codes
+        :param misuse_case: A dictionary containing the misuse case fields
+        :param use_case: A dictionary containing the use case fields
         :return: Returns a dictionary containing whether the request was successful or not. If the request was not
                  successful, the dictionary also contains the descriptive error message.
         '''
-        payload = {'cwes': str(cwe_codes),
-                   'muc': str(misuse_case_description),
-                   'uc': str(use_case_description),
-                   'osr': str(osr_description)}
+        payload = {'cwes': json.dumps(cwe_codes),
+                   'muc': json.dumps(misuse_case),
+                   'uc': json.dumps(use_case)}
         url_string = '%s/custom_muo/save' % rest_api.get_url()
-        response = requests.post(url_string, data=payload, headers=rest_api.get_header())
-        return rest_api.process_response(response)
+        try:
+            response = requests.post(url_string, data=payload, headers=rest_api.get_header())
+            return rest_api.process_response(response)
+        except ConnectionError as e:
+            return rest_api.handle_server_connection_error()
