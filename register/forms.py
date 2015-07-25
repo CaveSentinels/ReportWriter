@@ -6,7 +6,7 @@ from allauth.account.forms import SignupForm, LoginForm
 from allauth.account import app_settings
 from allauth.account.forms import authenticate
 from django.utils.translation import ugettext_lazy as _
-from . import settings
+from .settings import NUMBER_OF_FAILED_LOGINS_BEFORE_CAPTCHA
 
 class CaptchaLoginForm(LoginForm):
     recaptcha = ReCaptchaField(label="I'm a human", required=False)
@@ -16,7 +16,7 @@ class CaptchaLoginForm(LoginForm):
         super(CaptchaLoginForm, self).__init__(*args, **kwargs)
 
         # Display captcha after N failed attempts
-        if self.request.session.get('invalid_login_attempts', 0) >= settings.NUMBER_OF_FAILED_LOGINS_BEFORE_CAPTCHA:
+        if self.request.session.get('invalid_login_attempts', 0) >= NUMBER_OF_FAILED_LOGINS_BEFORE_CAPTCHA:
             self.fields.update({'recaptcha': self.declared_fields['recaptcha']})
 
     def clean(self):
@@ -42,7 +42,7 @@ class CaptchaLoginForm(LoginForm):
 
 
 
-class CustomSingupForm(SignupForm):
+class CustomSignupForm(SignupForm):
     """
     It is a Custom Registration Form class which overrides the default registration form class.
     Its purpose is to add two new fields to the registration form
@@ -54,7 +54,7 @@ class CustomSingupForm(SignupForm):
 
 
     def __init__(self, *args, **kwargs):
-        super(CustomSingupForm, self).__init__(*args, **kwargs)
+        super(CustomSignupForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = True
@@ -82,3 +82,4 @@ class CustomSingupForm(SignupForm):
                 css_class='col-sm-12',
             ),
         )
+

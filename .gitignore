@@ -1,4 +1,4 @@
-EnhancedCWE/local_settings.py
+ReportWriter/local_settings.py
 *.sqlite3
 venv
 staticfiles

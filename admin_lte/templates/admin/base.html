@@ -24,7 +24,7 @@
           However, you can choose any other skin. Make sure you
           apply the skin class to the body tag so the changes take effect.
     -->
-    <link href="{% static 'AdminLTE/dist/css/skins/skin-purple.min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'AdminLTE/dist/css/skins/skin-blue.min.css' %}" rel="stylesheet" type="text/css"/>
 
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/overrides.css" %}"/>
 
@@ -70,7 +70,7 @@
 </head>
 {% load i18n %}
 
-<body class="skin-purple layout-top-nav {% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
+<body class="skin-blue layout-top-nav {% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
 
 <div class="wrapper">
 
@@ -91,6 +91,7 @@
                   </button>
                 </div>
 
+                {% block applications_menu %}
                 {% if user.is_authenticated %}
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
@@ -128,13 +129,9 @@
                         </ul>
                     </li>
                   </ul>
-                  <form class="navbar-form navbar-left" role="search">
-                    <div class="form-group">
-                      <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
-                    </div>
-                  </form>
                 </div><!-- /.navbar-collapse -->
                 {% endif %}
+                {% endblock %}
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
