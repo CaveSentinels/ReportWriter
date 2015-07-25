@@ -5,7 +5,23 @@
 
 {% block branding %}
 {#    <a id="site-name" href="{% url 'admin:index' %}" class="logo">{{ site_header|default:_('Django administration') }}</a>#}
-    <a id="site-name" href="{% url 'admin:index' %}" class="navbar-brand">Report<b>Writer</b></a>
+    <a id="site-name" href="{% url 'frontpage:index' %}" class="navbar-brand">Report<b>Writer</b></a>
+{% endblock %}
+
+
+{% block applications_menu %}
+    {% if user.is_authenticated %}
+        <div class="pull-left">
+              <ul class="nav navbar-nav">
+                <li>
+                    <a href="{% url 'admin:index' %}">
+                        <i class="fa fa-reorder"></i> &nbsp;
+                        {% trans 'Dashboard' %}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block extrahead %}
@@ -16,5 +32,13 @@
 {% block bodyclass %} report_writer {% endblock %}
 
 
-{#{% block nav-global %}{% endblock %}#}
-
+{% block footer %}
+    <footer class="main-footer" id="footer">
+        <!-- To the right -->
+        <div class="pull-right hidden-xs">
+{#            Anything you want#}
+        </div>
+        <!-- Default to the left -->
+        <strong>Copyright &copy; {% now "Y" %} <a href="#">ReportWriter</a>.</strong> All rights reserved.
+    </footer>
+{% endblock %}
