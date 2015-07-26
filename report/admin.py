@@ -319,6 +319,11 @@ class ReportAdmin(BaseAdmin):
                 obj.action_save_in_draft()
                 msg = "You can now edit the Report"
 
+            elif "_promote" in request.POST:
+                # action_promote method is invoked on click of promote button
+                muo_saved =obj.action_promote()
+                msg = muo_saved["msg"]
+
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.
                 return super(ReportAdmin, self).response_change(request, obj, *args, **kwargs)

@@ -6,6 +6,7 @@ from base.models import BaseModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from ReportWriter.rest_api import rest_api
 
 STATUS = [('draft', 'Draft'),
           ('in_review', 'In Review'),
@@ -155,6 +156,35 @@ class Report(BaseModel):
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
 
+    def action_promote(self):
+            # Get the CWE Code numbers in a list
+        cwe_codes = [c['code'] for c in self.cwes.values('code')]
+       # cwe_list = {"code":cwe_codes}
+
+        misuse_case = {"misuse_case_description":self.misuse_case_description,
+                       "misuse_case_primary_actor":self.misuse_case_primary_actor,"misuse_case_secondary_actor":self.misuse_case_secondary_actor,
+                       "misuse_case_precondition":self.misuse_case_precondition,"misuse_case_flow_of_events":self.misuse_case_flow_of_events,
+                       "misuse_case_postcondition":self.misuse_case_postcondition,"misuse_case_assumption":self.misuse_case_assumption,
+                       "misuse_case_source":self.misuse_case_source}
+
+        use_case ={"use_case_description":self.use_case_description,
+                       "use_case_primary_actor":self.use_case_primary_actor,"use_case_secondary_actor":self.use_case_secondary_actor,
+                       "use_case_precondition":self.use_case_precondition,"use_case_flow_of_events":self.use_case_flow_of_events,
+                       "use_case_postcondition":self.use_case_postcondition,"use_case_assumption":self.use_case_assumption,
+                       "use_case_source":self.use_case_source,
+                        "osr_pattern_type":self.osr_pattern_type,
+                        "osr":self.osr}
+        # Invoke the method which makes a rest call to the Enhanced CWE System and saves the MUO in that system
+        # cwe_codes should be in the form of string separated by commas
+        muo_saved = rest_api.save_muos_to_enhanced_cwe(self,cwe_codes,misuse_case,
+                                                  use_case)
+        if muo_saved["success"]:
+            muo_saved["msg"] = "The MUO has been promoted to Enhanced CWE Application"
+            self.promoted = True
+            self.custom = "generic"
+            self.save()
+        return muo_saved
+
 @receiver(post_save, sender=Report, dispatch_uid='report_post_save_signal')
 def post_save_report(sender, instance, created, using, **kwargs):
     """ Set the value of the field 'name' after creating the object """
@@ -251,6 +281,8 @@ class IssueReport(BaseModel):
             self.save()
         else:
             raise ValueError("In order to open an issue it should be in open state")
+
+
 
 
 @receiver(post_save, sender=IssueReport, dispatch_uid='issue_report_post_save_signal')
