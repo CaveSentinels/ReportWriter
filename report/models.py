@@ -166,24 +166,24 @@ class Report(BaseModel):
         """
         # Get the CWE Code numbers in a list
         cwe_codes = [c['code'] for c in self.cwes.values('code')]
-        misuse_case = {'misuse_case_description':self.misuse_case_description,
-                       'misuse_case_primary_actor':self.misuse_case_primary_actor,
-                       'misuse_case_secondary_actor':self.misuse_case_secondary_actor,
-                       'misuse_case_precondition':self.misuse_case_precondition,
-                       'misuse_case_flow_of_events':self.misuse_case_flow_of_events,
-                       'misuse_case_postcondition':self.misuse_case_postcondition,
-                       'misuse_case_assumption':self.misuse_case_assumption,
-                       'misuse_case_source':self.misuse_case_source}
+        misuse_case = {'misuse_case_description': self.misuse_case_description,
+                       'misuse_case_primary_actor': self.misuse_case_primary_actor,
+                       'misuse_case_secondary_actor': self.misuse_case_secondary_actor,
+                       'misuse_case_precondition': self.misuse_case_precondition,
+                       'misuse_case_flow_of_events': self.misuse_case_flow_of_events,
+                       'misuse_case_postcondition': self.misuse_case_postcondition,
+                       'misuse_case_assumption': self.misuse_case_assumption,
+                       'misuse_case_source': self.misuse_case_source}
 
-        use_case = {'use_case_description':self.use_case_description,
-                    'use_case_primary_actor':self.use_case_primary_actor,
-                    'use_case_secondary_actor':self.use_case_secondary_actor,
-                    'use_case_precondition':self.use_case_precondition,
-                    'use_case_flow_of_events':self.use_case_flow_of_events,
-                    'use_case_postcondition':self.use_case_postcondition,
-                    'use_case_assumption':self.use_case_assumption,
-                    'use_case_source':self.use_case_source,
-                    'osr_pattern_type':self.osr_pattern_type,
+        use_case = {'use_case_description': self.use_case_description,
+                    'use_case_primary_actor': self.use_case_primary_actor,
+                    'use_case_secondary_actor': self.use_case_secondary_actor,
+                    'use_case_precondition': self.use_case_precondition,
+                    'use_case_flow_of_events': self.use_case_flow_of_events,
+                    'use_case_postcondition': self.use_case_postcondition,
+                    'use_case_assumption': self.use_case_assumption,
+                    'use_case_source': self.use_case_source,
+                    'osr_pattern_type': self.osr_pattern_type,
                     'osr': self.osr}
 
         # Invoke the method which makes a rest call to the Enhanced CWE System and saves the MUO in that system
