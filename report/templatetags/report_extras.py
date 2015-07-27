@@ -80,10 +80,9 @@ def report_submit_row(context):
         # Only custom MUOs can be promoted
         'show_promote':model_object and
                        model_object.status == 'approved' and
-                       user_object.has_perm('report.can_approve','report.can_reject') and
                        model_object.promoted == False and
-                       model_object.custom == 'custom',
-
+                       model_object.custom == 'custom'and
+                       user_object.has_perm('report.can_approve','report.can_reject'),
 
 
     })

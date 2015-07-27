@@ -112,7 +112,7 @@ class ReportForm(forms.ModelForm):
 class ReportAdmin(BaseAdmin):
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
-    search_fields = ['title','status','custom']
+    search_fields = ['title', 'status', 'custom']
     list_display = ['name', 'status']
     raw_id_fields = ['cwes']
 
