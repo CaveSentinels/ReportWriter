@@ -21,6 +21,10 @@
     </button>
 {% endif %}
 
+{% if show_publish %}<input type="submit" value="{% trans 'Publish' %}" class="btn btn-default" name="_publish" />{% endif %}
+{% if show_unpublish %}<input type="submit" value="{% trans 'Unpublish' %}" class="btn btn-default" name="_unpublish" />{% endif %}
+
+
 
 </div>
 <div class="spacer"></div>

@@ -73,7 +73,18 @@ def report_submit_row(context):
 
         # Show Report issue button only if the report is approved.
         'show_report_issue': model_object and
-                             model_object.status in ('approved')
+                             model_object.status in ('approved'),
+
+
+        'show_publish': model_object and
+                        model_object.status in ('approved') and
+                        model_object.is_published == False and
+                        (user_object.has_perm('report.can_edit_all') or user_object.has_perm('report.can_approve') or user_object.has_perm('report.can_reject')),
+
+        'show_unpublish':   model_object and
+                            model_object.is_published == True and
+                            model_object.status in ('approved') and
+                            (user_object.has_perm('report.can_edit_all') or user_object.has_perm('report.can_approve') or user_object.has_perm('report.can_reject')),
 
 
 

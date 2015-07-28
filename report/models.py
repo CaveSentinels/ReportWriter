@@ -59,6 +59,7 @@ class Report(BaseModel):
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
     custom = models.CharField(max_length=16, null=True, blank=True)
     promoted = models.BooleanField("MUO is promoted to Enhanced CWE System", default=False, db_index=True)
+    is_published = models.BooleanField(default=False, db_index=True)
 
 
     class Meta:
@@ -102,6 +103,7 @@ class Report(BaseModel):
         """
         if self.status == 'in_review':
             self.status = 'approved'
+            self.is_published = True
             self.reviewed_by = reviewer
             self.save()
             # Send email
@@ -135,6 +137,7 @@ class Report(BaseModel):
         """
         if self.status == 'in_review' or self.status == 'approved':
             self.status = 'rejected'
+            self.is_published = False
             self.reject_reason = reject_reason
             self.reviewed_by = reviewer
             self.save()
@@ -143,6 +146,94 @@ class Report(BaseModel):
 
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
+
+    def action_set_publish(self, should_publish):
+        '''
+        This method change the published status of the report as per the passed boolean variable value.
+        :param should_publish: Publish status to be set on the report
+        :return: Null
+        '''
+        if self.status == 'approved' and self.is_published != should_publish:
+            self.is_published = should_publish
+            self.save()
+        else:
+            raise ValueError("Report can only be published/unpublished if it is in approved state.")
+
+
+class ReportQuerySet(models.QuerySet):
+    """
+    Define custom methods for the Report QuerySet
+    """
+
+
+    def approved(self):
+        from django.db.models import Q
+
+        # Returns the queryset for all the approved Report
+        if self.model == Report:
+            return self.filter(Q(status='approved') | Q(is_published=True))
+
+
+    def rejected(self):
+        # Returns the queryset for all the rejected Report
+        if self.model == Report:
+            return self.filter(status='rejected')
+
+
+    def draft(self):
+        # Returns the queryset for all the draft Report
+        if self.model == Report:
+            return self.filter(status='draft')
+
+
+    def in_review(self):
+        # Returns the queryset for all the in review Report
+        if self.model == Report:
+            return self.filter(status='in_review')
+
+
+    def custom(self):
+        # Returns the queryset for all the custom Report
+        if self.model == Report:
+            return self.filter(is_custom=True)
+
+
+    def published(self):
+        # Returns the queryset for all the published Report
+        if self.model == Report:
+            return self.filter(is_published=True)
+
+
+    def unpublished(self):
+        # Returns the queryset for all the unpublished Report
+        if self.model == Report:
+            return self.filter(is_published=False)
+
+
+class ReportManager(models.Manager):
+    """
+    Define custom methods that can be called on the Report
+    """
+
+    def get_queryset(self):
+        return ReportQuerySet(self.model, using=self._db)
+
+    def approved(self):
+        return self.get_queryset().approved()
+
+    def draft(self):
+        return self.get_queryset().draft()
+
+    def rejected(self):
+        return self.get_queryset().rejected()
+
+    def in_review(self):
+        return self.get_queryset().in_review()
+
+    def custom(self):
+        return self.get_queryset().custom()
+
+
 
 @receiver(post_save, sender=Report, dispatch_uid='report_post_save_signal')
 def post_save_report(sender, instance, created, using, **kwargs):

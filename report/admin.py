@@ -321,6 +321,14 @@ class ReportAdmin(BaseAdmin):
                 obj.action_save_in_draft()
                 msg = "You can now edit the Report"
 
+            elif "_unpublish" in request.POST:
+                obj.action_set_publish(0)
+                msg = "This MUO has been unpublished."
+
+            elif "_publish" in request.POST:
+                obj.action_set_publish(1)
+                msg = "This MUO has been published."
+
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.
                 return super(ReportAdmin, self).response_change(request, obj, *args, **kwargs)
@@ -380,7 +388,7 @@ class IssueReportAdmin(BaseAdmin):
         This view is called by muo search using ajax to display the report issue popup
         """
         if request.method == "POST":
-            # read the usecase_id that triggered this action
+            # read the report id that triggered this action
             report_id = request.POST.get('report_id')
             report = get_object_or_404(Report, pk=report_id)
 
@@ -419,13 +427,8 @@ class IssueReportAdmin(BaseAdmin):
                 errors = '<br/>'.join(errors)
                 self.message_user(request, mark_safe("Invalid report content!<br/>%s" % errors) , messages.ERROR)
 
-            # Go back to misuse case view
-            opts = self.model._meta
-            post_url = reverse('admin:%s_%s_changelist' %
-                               (opts.app_label, 'issuereport'),
-                               current_app=self.admin_site.name)
-            preserved_filters = self.get_preserved_filters(request)
-            post_url = add_preserved_filters({'preserved_filters': preserved_filters, 'opts': opts}, post_url)
+            # Go back to report view
+            post_url = request.META['HTTP_REFERER']
 
             return HttpResponseRedirect(post_url)
 
