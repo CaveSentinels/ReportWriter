@@ -112,7 +112,7 @@ class ReportForm(forms.ModelForm):
 class ReportAdmin(BaseAdmin):
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
-    search_fields = ['title']
+    search_fields = ['title', 'status', 'custom']
     list_display = ['name', 'status']
     raw_id_fields = ['cwes']
 
@@ -318,6 +318,11 @@ class ReportAdmin(BaseAdmin):
             elif "_edit" in request.POST:
                 obj.action_save_in_draft()
                 msg = "You can now edit the Report"
+
+            elif "_promote" in request.POST:
+                # action_promote method is invoked on click of promote button
+                muo_saved =obj.action_promote()
+                msg = muo_saved['msg']
 
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.
