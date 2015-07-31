@@ -272,6 +272,24 @@ jQuery(function() {
             }
         });
     });
+
+
+    $("body").on('click', '#muo_see_more', function(e){
+        // stop propagating the click event to misuse-case-container
+        e.stopPropagation();
+
+        var misuse_case_id = $(this).attr("data-value");
+        var hidden_attributes = $('#hidden_attributes' + misuse_case_id);
+
+        if (!hidden_attributes.is(':visible')){
+            hidden_attributes.slideDown();
+            $(this).text('See Less');
+        } else {
+            hidden_attributes.slideUp();
+            $(this).text('See More');
+        }
+    });
+
 });
 
 

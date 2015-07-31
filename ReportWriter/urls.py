@@ -19,7 +19,8 @@ from django.views.generic import TemplateView
 from user_profile.views import ProfileView
 
 urlpatterns = [
-    url(r'^$', include('frontpage.urls', namespace='frontpage')),
+    url(r'^', include('frontpage.urls', namespace='frontpage')),
+    url(r'^report/', include('report.urls', namespace='report')),
     url(r'^profile/$', ProfileView.as_view(), name='user_profile'),
     url(r'^robots\.txt/$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^accounts/', include('register.urls')),
