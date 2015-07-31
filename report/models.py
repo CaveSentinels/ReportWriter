@@ -205,6 +205,14 @@ def post_save_report(sender, instance, created, using, **kwargs):
         instance.name = "Report-{0:05d}".format(instance.id)
         instance.save()
 
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def post_save_deactivate_user(sender, instance, created=False, **kwargs):
+    """
+    Registering for the post_save signal so that after the User gets deactivated, we can delete all the Report
+    which are in draft, rejected and in_review state from the database
+    """
+    if not instance.is_active:
+        Report.objects.filter(created_by=instance, status__in=['draft', 'rejected', 'in_review']).delete()
 
 STATUS = [('draft', 'Draft'),
           ('in_review', 'In Review'),
