@@ -153,9 +153,11 @@ class Report(BaseModel):
         :param should_publish: Publish status to be set on the report
         :return: Null
         '''
-        if self.status == 'approved' and self.is_published != should_publish:
-            self.is_published = should_publish
-            self.save()
+        if self.status == 'approved':
+            if self.is_published != should_publish:
+                self.is_published = should_publish
+                self.save()
+
         else:
             raise ValueError("Report can only be published/unpublished if it is in approved state.")
 
@@ -164,8 +166,6 @@ class ReportQuerySet(models.QuerySet):
     """
     Define custom methods for the Report QuerySet
     """
-
-
     def approved(self):
         from django.db.models import Q
 
@@ -173,36 +173,30 @@ class ReportQuerySet(models.QuerySet):
         if self.model == Report:
             return self.filter(Q(status='approved') | Q(is_published=True))
 
-
     def rejected(self):
         # Returns the queryset for all the rejected Report
         if self.model == Report:
             return self.filter(status='rejected')
-
 
     def draft(self):
         # Returns the queryset for all the draft Report
         if self.model == Report:
             return self.filter(status='draft')
 
-
     def in_review(self):
         # Returns the queryset for all the in review Report
         if self.model == Report:
             return self.filter(status='in_review')
-
 
     def custom(self):
         # Returns the queryset for all the custom Report
         if self.model == Report:
             return self.filter(is_custom=True)
 
-
     def published(self):
         # Returns the queryset for all the published Report
         if self.model == Report:
             return self.filter(is_published=True)
-
 
     def unpublished(self):
         # Returns the queryset for all the unpublished Report
