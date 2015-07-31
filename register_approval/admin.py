@@ -43,7 +43,6 @@ class EmailAddressAdmin(BaseAdmin):
                                    args=(pk_value,))
         redirect_url = add_preserved_filters({'preserved_filters': preserved_filters, 'opts': opts}, redirect_url)
 
-        msg = None
         msg_dict = {'name': force_text(opts.verbose_name), 'obj': force_text(obj)}
 
         # Check which button is clicked, handle accordingly.

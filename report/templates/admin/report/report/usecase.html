@@ -5,15 +5,65 @@
     {% for usecase in use_cases %}
         <div class="use-case-container" data-value="{{ usecase.id }}">
             <div class="use-case-header">
-                <label class="pull-left">{{ usecase.name }}</label>
+                <label class="pull-left" id="use-case-name-label">Use Case: {{ usecase.name }}</label>
                 <label id="muo-date-header">{{ usecase.created_at }}</label>
             </div>
             <div class="use-case-div">
-                {{ usecase.description }}
+                <div>
+                    <label class="heading">Description</label>
+                </div>
+                <div class="text" id="use-case-description-{{ usecase.id }}">{{ usecase.use_case_description }}</div>
             </div>
-            <div class="osr-div">
-                {{ usecase.osr }}
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Primary Actor</label>
+                </div>
+                <div class="text" id="use-case-primary-actor-{{ usecase.id }}">{{ usecase.use_case_primary_actor }}</div>
             </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Secondary Actor</label>
+                </div>
+                <div class="text" id="use-case-secondary-actor-{{ usecase.id }}">{{ usecase.use_case_secondary_actor }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Pre-condition</label>
+                </div>
+                <div class="text" id="use-case-precondition-{{ usecase.id }}">{{ usecase.use_case_precondition }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Flow of Events</label>
+                </div>
+                <div class="text" id="use-case-flow-of-events-{{ usecase.id }}">{{ usecase.use_case_flow_of_events }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Post-condition</label>
+                </div>
+                <div class="text" id="use-case-postcondition-{{ usecase.id }}">{{ usecase.use_case_postcondition }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Assumption</label>
+                </div>
+                <div class="text" id="use-case-assumption-{{ usecase.id }}">{{ usecase.use_case_assumption }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="heading">Source</label>
+                </div>
+                <div class="text" id="use-case-source-{{ usecase.id }}">{{ usecase.use_case_source }}</div>
+            </div>
+            <div class="use-case-div">
+                <div>
+                    <label class="osr-heading">Overlooked Security Requirement:</label>
+                </div>
+                <div class="text" id="use-case-osr-{{ usecase.id }}">{{ usecase.osr }}</div>
+            </div>
+            <input type="hidden" id="osr-pattern-type-{{ usecase.id }}" name="custom" value="{{ usecase.osr_pattern_type }}">
+            <br>
         </div>
     {% endfor %}
 </div>

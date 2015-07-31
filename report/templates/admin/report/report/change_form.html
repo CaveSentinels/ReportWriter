@@ -107,30 +107,30 @@
                                 <label style="margin-bottom: 0px;">Misuse Case:</label>
                                 <hr style="margin-top: 5px">
                                 {{ form.misuse_case_description|attr:"rows:7"|as_crispy_field }}
-{#                                {{ form.misuse_case_primary_actor|as_crispy_field }}#}
-{#                                {{ form.misuse_case_secondary_actor|as_crispy_field }}#}
-{#                                {{ form.misuse_case_precondition|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.misuse_case_flow_of_events|attr:"rows:3"|as_crispy_field }}#}
-{#                                {{ form.misuse_case_postcondition|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.misuse_case_assumption|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.misuse_case_source|attr:"rows:1"|as_crispy_field }}#}
+                                {{ form.misuse_case_primary_actor|as_crispy_field }}
+                                {{ form.misuse_case_secondary_actor|as_crispy_field }}
+                                {{ form.misuse_case_precondition|attr:"rows:2"|as_crispy_field }}
+                                {{ form.misuse_case_flow_of_events|attr:"rows:3"|as_crispy_field }}
+                                {{ form.misuse_case_postcondition|attr:"rows:2"|as_crispy_field }}
+                                {{ form.misuse_case_assumption|attr:"rows:2"|as_crispy_field }}
+                                {{ form.misuse_case_source|attr:"rows:1"|as_crispy_field }}
                             </div>
 
                             <div class="col-md-6">
                                 <label style="margin-bottom: 0px;">Use Case:</label>
                                 <hr style="margin-top: 5px">
                                 {{ form.use_case_description|attr:"rows:7"|as_crispy_field }}
-{#                                {{ form.use_case_primary_actor|as_crispy_field }}#}
-{#                                {{ form.use_case_secondary_actor|as_crispy_field }}#}
-{#                                {{ form.use_case_precondition|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.use_case_flow_of_events|attr:"rows:3"|as_crispy_field }}#}
-{#                                {{ form.use_case_postcondition|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.use_case_assumption|attr:"rows:2"|as_crispy_field }}#}
-{#                                {{ form.use_case_source|attr:"rows:1"|as_crispy_field }}#}
+                                {{ form.use_case_primary_actor|as_crispy_field }}
+                                {{ form.use_case_secondary_actor|as_crispy_field }}
+                                {{ form.use_case_precondition|attr:"rows:2"|as_crispy_field }}
+                                {{ form.use_case_flow_of_events|attr:"rows:3"|as_crispy_field }}
+                                {{ form.use_case_postcondition|attr:"rows:2"|as_crispy_field }}
+                                {{ form.use_case_assumption|attr:"rows:2"|as_crispy_field }}
+                                {{ form.use_case_source|attr:"rows:1"|as_crispy_field }}
                             </div>
 
                             <div class="col-md-12">
-                                <hr style="margin-top: 5px">
+                                {{ form.osr_pattern_type|as_crispy_field }}
                                 {{ form.osr|attr:"rows:5"|as_crispy_field }}
                             </div>
                         </div>

@@ -86,6 +86,14 @@ def report_submit_row(context):
                             model_object.status in ('approved') and
                             (user_object.has_perm('report.can_edit_all') or user_object.has_perm('report.can_approve') or user_object.has_perm('report.can_reject')),
 
+        # Promote button is shown only when report is approved and the user has can_approve or can_reject permission
+        # Promoting an MUO can happen only when promoted field is set as false
+        # Only custom MUOs can be promoted
+        'show_promote':model_object and
+                       model_object.status == 'approved' and
+                       model_object.promoted == False and
+                       model_object.custom == 'custom'and
+                       user_object.has_perm('report.can_approve','report.can_reject'),
 
 
     })

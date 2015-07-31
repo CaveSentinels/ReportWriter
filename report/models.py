@@ -6,6 +6,7 @@ from base.models import BaseModel
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from rest_api.utils import rest_api
 
 STATUS = [('draft', 'Draft'),
           ('in_review', 'In Review'),
@@ -13,6 +14,11 @@ STATUS = [('draft', 'Draft'),
           ('rejected', 'Rejected')]
 
 MUO_STATUS = [('custom', 'Custom'), ('generic', 'Generic')]
+
+OSR_PATTERN_CHOICES = [('ubiquitous', 'Ubiquitous'),
+                       ('event-driven', 'Event-Driven'),
+                       ('unwanted behavior', 'Unwanted Behavior'),
+                       ('state-driven', 'State-Driven')]
 
 class CWE(BaseModel):
     code = models.IntegerField(unique=True)
@@ -54,6 +60,12 @@ class Report(BaseModel):
     use_case_assumption = models.TextField(null=True, blank=True, verbose_name="Assumption")
     use_case_source = models.TextField(null=True, blank=True, verbose_name="Source")
 
+    osr_pattern_type = models.CharField(max_length=32,
+                                        null=True,
+                                        blank=False,
+                                        choices=OSR_PATTERN_CHOICES,
+                                        default='ubiquitous',
+                                        verbose_name='Overlooked security requirements pattern type')
     osr = models.TextField(null=True, blank=True, verbose_name="Overlooked Security Requirement")
 
     status = models.CharField(choices=STATUS, max_length=64, default='draft')
@@ -147,6 +159,7 @@ class Report(BaseModel):
         else:
             raise ValueError("In order to approve an Report, it should be in 'in-review' state")
 
+
     def action_set_publish(self, should_publish):
         '''
         This method change the published status of the report as per the passed boolean variable value.
@@ -228,6 +241,47 @@ class ReportManager(models.Manager):
         return self.get_queryset().custom()
 
 
+    def action_promote(self):
+        """
+        This method promotes the MUO to Enhanced CWE Application
+        This change is allowed only if the current status is approved and the custom field points to 'custom'.
+        If the MUO is not successfully promoted to the enhancedCWE Application, then it thrpws error.
+        After it gets promoted, the custom field is changed to 'generic' and promoted field is set as True
+        :raise ValueError: if not promoted successfully'
+        """
+        # Get the CWE Code numbers in a list
+        cwe_codes = [c['code'] for c in self.cwes.values('code')]
+        misuse_case = {'misuse_case_description': self.misuse_case_description,
+                       'misuse_case_primary_actor': self.misuse_case_primary_actor,
+                       'misuse_case_secondary_actor': self.misuse_case_secondary_actor,
+                       'misuse_case_precondition': self.misuse_case_precondition,
+                       'misuse_case_flow_of_events': self.misuse_case_flow_of_events,
+                       'misuse_case_postcondition': self.misuse_case_postcondition,
+                       'misuse_case_assumption': self.misuse_case_assumption,
+                       'misuse_case_source': self.misuse_case_source}
+
+        use_case = {'use_case_description': self.use_case_description,
+                    'use_case_primary_actor': self.use_case_primary_actor,
+                    'use_case_secondary_actor': self.use_case_secondary_actor,
+                    'use_case_precondition': self.use_case_precondition,
+                    'use_case_flow_of_events': self.use_case_flow_of_events,
+                    'use_case_postcondition': self.use_case_postcondition,
+                    'use_case_assumption': self.use_case_assumption,
+                    'use_case_source': self.use_case_source,
+                    'osr_pattern_type': self.osr_pattern_type,
+                    'osr': self.osr}
+
+        # Invoke the method which makes a rest call to the Enhanced CWE System and saves the MUO in that system
+        # cwe_codes should be in the form of string separated by commas
+        muo_saved = rest_api.save_muos_to_enhanced_cwe(cwe_codes, misuse_case, use_case)
+        if muo_saved['success']:
+            muo_saved['msg'] = "The MUO has been promoted to Enhanced CWE Application"
+            self.promoted = True
+            self.custom = "generic"
+            self.save()
+        else:
+            raise ValueError(muo_saved['msg'])
+        return muo_saved
 
 @receiver(post_save, sender=Report, dispatch_uid='report_post_save_signal')
 def post_save_report(sender, instance, created, using, **kwargs):

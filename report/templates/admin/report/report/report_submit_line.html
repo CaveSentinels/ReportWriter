@@ -6,6 +6,7 @@
     {% endif %}
 </div>
 <div class="pull-right">
+{% if show_promote %}<input type="submit" value="{% trans 'Promote' %}" class="btn btn-default" name="_promote"/>{% endif %}
 {% if show_approve %}<input type="submit" value="{% trans 'Approve' %}" class="btn btn-default" name="_approve" />{% endif %}
 {% if show_reject %}<button type="button" class="btn btn-default" data-toggle="modal" data-target="#reject-model" name="_reject" >{% trans 'Reject' %}</button>{% endif %}
 {% if show_submit_for_review %}<input type="submit" value="{% trans 'Submit for Review' %}" class="btn btn-default" name="_submit_for_review" />{% endif %}

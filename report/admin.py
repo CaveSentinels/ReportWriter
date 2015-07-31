@@ -112,7 +112,7 @@ class ReportForm(forms.ModelForm):
 class ReportAdmin(BaseAdmin):
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
-    search_fields = ['title']
+    search_fields = ['title', 'status', 'custom']
     list_display = ['name', 'status']
     raw_id_fields = ['cwes']
 
@@ -254,8 +254,7 @@ class ReportAdmin(BaseAdmin):
 
         if misuse_cases['success'] is False:
             # There was some error and the REST call was not successful
-            # TODO Handle Error
-            pass
+            raise Http404(misuse_cases['msg'])
 
         # Set the context
         context = {'misuse_cases': misuse_cases['obj']}
@@ -275,8 +274,7 @@ class ReportAdmin(BaseAdmin):
 
         if use_cases['success'] is False:
             # There was some error and the REST call was not successful
-            # TODO Handle Error
-            pass
+            raise Http404(use_cases['msg'])
 
         context = {'use_cases': use_cases['obj']}
 
@@ -328,6 +326,12 @@ class ReportAdmin(BaseAdmin):
             elif "_publish" in request.POST:
                 obj.action_set_publish(1)
                 msg = "This MUO has been published."
+
+            elif "_promote" in request.POST:
+                # action_promote method is invoked on click of promote button
+                muo_saved =obj.action_promote()
+                msg = muo_saved['msg']
+
 
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.
