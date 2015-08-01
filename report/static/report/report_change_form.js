@@ -253,7 +253,6 @@ jQuery(function() {
 
     // Send an AJAX call to a view behind. You have to load your own HTML in the model.
     $("#report-issue-modal").on("show.bs.modal", function (e) {
-        debugger;
         var report_id = $(e.relatedTarget).data('report-id');
         var url = $(e.relatedTarget).data('ajax-url');
         // Load the report issue dialog
@@ -360,48 +359,28 @@ function set_placeholder(value) {
 
 
 function populate_muo_fields() {
-    var selected_misuse_case_div_value = $('.misuse-case-container.selected').attr("data-value");
-    var selected_use_case_div_value = $('.use-case-container.selected').attr("data-value");
+    var misuse_case = $('.misuse-case-container.selected');
+    var use_case = $('.use-case-container.selected');
 
-    var misuse_case_description_id = "misuse-case-description-".concat(selected_misuse_case_div_value);
-    var misuse_case_primary_actor_id = "misuse-case-primary-actor-".concat(selected_misuse_case_div_value);
-    var misuse_case_secondary_actor_id = "misuse-case-secondary-actor-".concat(selected_misuse_case_div_value);
-    var misuse_case_precondition_id = "misuse-case-precondition-".concat(selected_misuse_case_div_value);
-    var misuse_case_flow_of_events_id = "misuse-case-flow-of-events-".concat(selected_misuse_case_div_value);
-    var misuse_case_postcondition_id = "misuse-case-postcondition-".concat(selected_misuse_case_div_value);
-    var misuse_case_assumption_id = "misuse-case-assumption-".concat(selected_misuse_case_div_value);
-    var misuse_case_source_id = "misuse-case-source-".concat(selected_misuse_case_div_value);
+    $("#id_misuse_case_description").val(misuse_case.find('#misuse-case-description').text());
+    $("#id_misuse_case_primary_actor").val(misuse_case.find('#misuse-case-primary-actor').text());
+    $("#id_misuse_case_secondary_actor").val(misuse_case.find('#misuse-case-secondary-actor').text());
+    $("#id_misuse_case_precondition").val(misuse_case.find('#misuse-case-precondition').text());
+    $("#id_misuse_case_flow_of_events").val(misuse_case.find('#misuse-case-flow-of-events').text());
+    $("#id_misuse_case_postcondition").val(misuse_case.find('#misuse-case-postcondition').text());
+    $("#id_misuse_case_assumption").val(misuse_case.find('#misuse-case-assumption').text());
+    $("#id_misuse_case_source").val(misuse_case.find('#misuse-case-source').text());
 
-    var use_case_description_id = "use-case-description-".concat(selected_use_case_div_value);
-    var use_case_primary_actor_id = "use-case-primary-actor-".concat(selected_use_case_div_value);
-    var use_case_secondary_actor_id = "use-case-secondary-actor-".concat(selected_use_case_div_value);
-    var use_case_precondition_id = "use-case-precondition-".concat(selected_use_case_div_value);
-    var use_case_flow_of_events_id = "use-case-flow-of-events-".concat(selected_use_case_div_value);
-    var use_case_postcondition_id = "use-case-postcondition-".concat(selected_use_case_div_value);
-    var use_case_assumption_id = "use-case-assumption-".concat(selected_use_case_div_value);
-    var use_case_source_id = "use-case-source-".concat(selected_use_case_div_value);
-    var use_case_osr_id = "use-case-osr-".concat(selected_use_case_div_value);
-    var osr_pattern_type = "osr-pattern-type-".concat(selected_use_case_div_value);
-
-    $("#id_misuse_case_description").val(document.getElementById(misuse_case_description_id).textContent.trim());
-    $("#id_misuse_case_primary_actor").val(document.getElementById(misuse_case_primary_actor_id).textContent.trim());
-    $("#id_misuse_case_secondary_actor").val(document.getElementById(misuse_case_secondary_actor_id).textContent.trim());
-    $("#id_misuse_case_precondition").val(document.getElementById(misuse_case_precondition_id).textContent.trim());
-    $("#id_misuse_case_flow_of_events").val(document.getElementById(misuse_case_flow_of_events_id).textContent.trim());
-    $("#id_misuse_case_postcondition").val(document.getElementById(misuse_case_postcondition_id).textContent.trim());
-    $("#id_misuse_case_assumption").val(document.getElementById(misuse_case_assumption_id).textContent.trim());
-    $("#id_misuse_case_source").val(document.getElementById(misuse_case_source_id).textContent.trim());
-
-    $("#id_use_case_description").val(document.getElementById(use_case_description_id).textContent.trim());
-    $("#id_use_case_primary_actor").val(document.getElementById(use_case_primary_actor_id).textContent.trim());
-    $("#id_use_case_secondary_actor").val(document.getElementById(use_case_secondary_actor_id).textContent.trim());
-    $("#id_use_case_precondition").val(document.getElementById(use_case_precondition_id).textContent.trim());
-    $("#id_use_case_flow_of_events").val(document.getElementById(use_case_flow_of_events_id).textContent.trim());
-    $("#id_use_case_postcondition").val(document.getElementById(use_case_postcondition_id).textContent.trim());
-    $("#id_use_case_assumption").val(document.getElementById(use_case_assumption_id).textContent.trim());
-    $("#id_use_case_source").val(document.getElementById(use_case_source_id).textContent.trim());
-    $("#id_osr").val(document.getElementById(use_case_osr_id).textContent.trim());
-    $("#id_osr_pattern_type").val(document.getElementById(osr_pattern_type).value);
+    $("#id_use_case_description").val(use_case.find('#use-case-description').text());
+    $("#id_use_case_primary_actor").val(use_case.find('#use-case-primary-actor').text());
+    $("#id_use_case_secondary_actor").val(use_case.find('#use-case-secondary-actor').text());
+    $("#id_use_case_precondition").val(use_case.find('#use-case-precondition').text());
+    $("#id_use_case_flow_of_events").val(use_case.find('#use-case-flow-of-events').text());
+    $("#id_use_case_postcondition").val(use_case.find('#use-case-postcondition').text());
+    $("#id_use_case_assumption").val(use_case.find('#use-case-assumption').text());
+    $("#id_use_case_source").val(use_case.find('#use-case-source').text());
+    $("#id_osr").val(use_case.find('#use-case-osr').text());
+    $("#id_osr_pattern_type").val(use_case.find('#osr-pattern-type').val());
 }
 
 

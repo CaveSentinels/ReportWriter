@@ -42,6 +42,12 @@
 
 }
 
+#muo-container .misuse-case-container {
+    border-bottom: thin double;
+    border-color: #e7eaec;
+    padding-top: 15px;
+}
+
 /*.misuse-case-container {*/
     /*border-right: thin double;*/
     /*border-bottom: thin double;*/
@@ -54,10 +60,17 @@
     cursor: pointer;
 }
 
+.misuse-case-container .muo_see_more_div {
+    margin-bottom: 5px;
+    margin-top: -20px;
+}
+
 .misuse-case-header, .use-case-header{
     padding: 15px;
     padding-top: 0px;
 }
+
+
 
 .usecase-footer {
     height: 20px;
@@ -73,7 +86,7 @@
 }
 
 .use-case-container {
-    width: 97%;
+    width: calc(100% - 20px);
     margin: 10px;
     padding: 15px 15px 0 15px;
     background-color: white;
@@ -105,7 +118,7 @@
 
 .use-case-container:hover,
     .use-case-container.selected {
-    background-color: #ecf0f5;
+    background-color: #f3f3f4;
     cursor: pointer;
 }
 

@@ -22,7 +22,7 @@
     <div class="box box-primary report-details">
         <div class="box-header with-border">
             <div class="col-md-10">
-                <h3 class="box-title"><b>{{ report.title }}</b></h3>
+                <h3 class="box-title"><b>{{ report.name}}: {{ report.title }}</b></h3>
             </div>
             <div class="col-md-2">
                 {{ report.created_at }}
@@ -136,8 +136,50 @@
                     {{ report.osr|linebreaks }}
                 </div>
 
+                {% if user.is_authenticated %}
+                <div class="pull-right">
+                    <a href="#report-modal" class="btn btn-xs" data-toggle="modal"
+                       data-ajax-url="{% url 'report:create_issue_report' %}"
+                       data-report-id="{{ report.pk }}"
+                       title data-original-title="Report Issue">
+                        <span class="fa fa-exclamation-triangle"></span>
+                        Report Issue
+                    </a>
+                </div>
+                {% endif %}
+
             </div>
         </div>
     </div>
+
+    {# Modal used for popups, such as report inappropriate#}
+    <div class="modal fade" id="report-modal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true"></div>
+
+
+    <script>
+    jQuery(function() {
+
+        $("#report-modal").on("show.bs.modal", function (e) {
+            var report_id = $(e.relatedTarget).data('report-id');
+            var url = $(e.relatedTarget).data('ajax-url');
+
+            // Load the report issue dialog
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {report_id: report_id}, // Send the selected use case id
+
+                success: function (result) {
+                    $(e.currentTarget).html(result);
+                },
+
+                error: function (xhr, errmsg, err) {
+                    // Show error message in the alert
+                    alert("Oops! We have encountered and error \n" + errmsg);
+                }
+            });
+        });
+    });
+    </script>
 
 {% endblock %}
