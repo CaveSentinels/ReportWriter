@@ -16,7 +16,7 @@ import settings
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DEBUG = True
-
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
 
 # INSTALLED_APPS = settings.INSTALLED_APPS + (
 #     # ...

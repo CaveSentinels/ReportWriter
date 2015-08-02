@@ -1,6 +1,5 @@
 from django.apps import apps
 from django.contrib import admin
-from django.contrib.admin import AdminSite
 from django.contrib.admin import options
 from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
 
@@ -20,7 +19,6 @@ from django.contrib.admin import helpers
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import get_deleted_objects, model_ngettext
-from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db import router
 from django.template.response import TemplateResponse
@@ -28,7 +26,6 @@ from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _, ungettext, ugettext_lazy
 from django.contrib.auth import get_permission_codename
-from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.views.decorators.cache import never_cache
 from django.utils.text import capfirst
 from django.core.urlresolvers import NoReverseMatch, reverse

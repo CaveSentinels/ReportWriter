@@ -308,5 +308,5 @@ class IssueReport(BaseModel):
 def post_save_issue_report(sender, instance, created, using, **kwargs):
     """ Set the value of the field 'name' after creating the object """
     if created:
-        instance.name = "Issue/{0:05d}".format(instance.id)
+        instance.name = "Issue-{0:05d}".format(instance.id)
         instance.save()
