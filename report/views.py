@@ -30,9 +30,9 @@ def report_list(request):
         query.append(Q(description__icontains=term))
         query.append(Q(cwes__name__icontains=term))
 
-        reports = Report.objects.filter(status='approved').filter(reduce(operator.or_, query)).distinct()
+        reports = Report.objects.approved().filter(reduce(operator.or_, query)).distinct()
     else:
-        reports = Report.objects.filter(status='approved')
+        reports = Report.objects.approved()
 
     context = {'reports': reports}
 
