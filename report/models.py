@@ -13,6 +13,15 @@ STATUS = [('draft', 'Draft'),
           ('approved', 'Approved'),
           ('rejected', 'Rejected')]
 
+ISSUE_TYPES = [('incorrect', 'Incorrect Content'),
+                ('spam', 'Spam'),
+                ('duplicate', 'Duplicate')]
+
+ISSUE_STATUS = [('open', 'Open'),
+                 ('investigating', 'Investigating'),
+                ('reopened','Re-opened'),
+                 ('resolved', 'Resolved')]
+
 MUO_STATUS = [('custom', 'Custom'), ('generic', 'Generic')]
 
 OSR_PATTERN_CHOICES = [('ubiquitous', 'Ubiquitous'),
@@ -214,19 +223,6 @@ def post_save_deactivate_user(sender, instance, created=False, **kwargs):
     if not instance.is_active:
         Report.objects.filter(created_by=instance, status__in=['draft', 'rejected', 'in_review']).delete()
 
-STATUS = [('draft', 'Draft'),
-          ('in_review', 'In Review'),
-          ('approved', 'Approved'),
-          ('rejected', 'Rejected')]
-
-ISSUE_TYPES = [('incorrect', 'Incorrect Content'),
-                ('spam', 'Spam'),
-                ('duplicate', 'Duplicate')]
-
-ISSUE_STATUS = [('open', 'Open'),
-                 ('investigating', 'Investigating'),
-                ('reopened','Re-opened'),
-                 ('resolved', 'Resolved')]
 
 
 class IssueReport(BaseModel):
