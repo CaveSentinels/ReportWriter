@@ -112,7 +112,7 @@ class ReportForm(forms.ModelForm):
 class ReportAdmin(BaseAdmin):
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
-    search_fields = ['title']
+    search_fields = ['title', 'status', 'custom']
     list_display = ['name', 'status']
     raw_id_fields = ['cwes']
 
@@ -319,6 +319,20 @@ class ReportAdmin(BaseAdmin):
                 obj.action_save_in_draft()
                 msg = "You can now edit the Report"
 
+            elif "_unpublish" in request.POST:
+                obj.action_set_publish(0)
+                msg = "This MUO has been unpublished."
+
+            elif "_publish" in request.POST:
+                obj.action_set_publish(1)
+                msg = "This MUO has been published."
+
+            elif "_promote" in request.POST:
+                # action_promote method is invoked on click of promote button
+                muo_saved =obj.action_promote()
+                msg = muo_saved['msg']
+
+
             else:
                 # Let super class 'ModelAdmin' handle rest of the button clicks i.e. 'save' 'save and continue' etc.
                 return super(ReportAdmin, self).response_change(request, obj, *args, **kwargs)
@@ -338,6 +352,7 @@ class ReportAdmin(BaseAdmin):
 
         self.message_user(request, msg, messages.SUCCESS)
         return HttpResponseRedirect(redirect_url)
+
 
 @admin.register(IssueReport)
 class IssueReportAdmin(BaseAdmin):
@@ -359,76 +374,6 @@ class IssueReportAdmin(BaseAdmin):
             fields.remove('report_duplicate')
 
         return fields
-
-
-    def get_urls(self):
-        urls = super(IssueReportAdmin, self).get_urls()
-        info = self.model._meta.app_label, self.model._meta.model_name
-
-        my_urls = [
-
-            url(r'new_report/$', self.admin_site.admin_view(self.new_report_view), name='%s_%s_new_report' % info),
-            url(r'add_report/$', self.admin_site.admin_view(self.render_add_report), name='%s_%s_add_report' % info),
-        ]
-        return my_urls + urls
-
-
-    def new_report_view(self, request):
-        """
-        This view is called by muo search using ajax to display the report issue popup
-        """
-        if request.method == "POST":
-            # read the usecase_id that triggered this action
-            report_id = request.POST.get('report_id')
-            report = get_object_or_404(Report, pk=report_id)
-
-            # Render issue report form and default initial values, if any
-            ModelForm = self.get_form(request)
-            initial = self.get_changeform_initial_data(request)
-            initial['report'] = report
-            form = ModelForm(initial=initial)
-
-            context = dict(
-                # Include common variables for rendering the admin template.
-                self.admin_site.each_context(request),
-                form=form,
-                report=report,
-            )
-            return TemplateResponse(request, "admin/report/issuereport/new_report.html", context)
-        else:
-            raise Http404("Invalid access using GET request!")
-
-
-    def render_add_report(self, request):
-        """
-        Handle adding new report created using muo search popup
-        """
-
-        if request.method == 'POST':
-
-            ModelForm = self.get_form(request)
-            form = ModelForm(request.POST, request.FILES)
-            if form.is_valid():
-                new_object = form.save()
-                self.message_user(request, "Report %s has been created will be reviewed by our reviewers" % new_object.name , messages.SUCCESS)
-            else:
-                # submitted form is invalid
-                errors = ["%s: %s" % (form.fields[field].label, error[0]) for field, error in form.errors.iteritems()]
-                errors = '<br/>'.join(errors)
-                self.message_user(request, mark_safe("Invalid report content!<br/>%s" % errors) , messages.ERROR)
-
-            # Go back to misuse case view
-            opts = self.model._meta
-            post_url = reverse('admin:%s_%s_changelist' %
-                               (opts.app_label, 'issuereport'),
-                               current_app=self.admin_site.name)
-            preserved_filters = self.get_preserved_filters(request)
-            post_url = add_preserved_filters({'preserved_filters': preserved_filters, 'opts': opts}, post_url)
-
-            return HttpResponseRedirect(post_url)
-
-        else:
-            raise Http404("Invalid access using GET request!")
 
 
     def response_change(self, request, obj, *args, **kwargs):

@@ -6,6 +6,7 @@
     {% endif %}
 </div>
 <div class="pull-right">
+{% if show_promote %}<input type="submit" value="{% trans 'Promote' %}" class="btn btn-default" name="_promote"/>{% endif %}
 {% if show_approve %}<input type="submit" value="{% trans 'Approve' %}" class="btn btn-default" name="_approve" />{% endif %}
 {% if show_reject %}<button type="button" class="btn btn-default" data-toggle="modal" data-target="#reject-model" name="_reject" >{% trans 'Reject' %}</button>{% endif %}
 {% if show_submit_for_review %}<input type="submit" value="{% trans 'Submit for Review' %}" class="btn btn-default" name="_submit_for_review" />{% endif %}
@@ -13,15 +14,8 @@
 {% if show_save_and_add_another %}<input type="submit" value="{% trans 'Save and add another' %}" class="btn btn-default" name="_addanother" {{ onclick_attrib }} />{% endif %}
 {% if show_save_and_continue %}<input type="submit" value="{% trans 'Save and continue editing' %}" class="btn btn-default" name="_continue" {{ onclick_attrib }}/>{% endif %}
 {% if show_save %}<input type="submit" value="{% trans 'Save' %}" class="btn btn-primary default" name="_save" {{ onclick_attrib }}/>{% endif %}
-{% if show_report_issue %}
-    <button type="button" class="btn btn-primary default" data-toggle="modal"
-            data-ajax-url="{% url 'admin:report_issuereport_new_report' %}" data-report-id="{{ original.id }}"
-            data-target="#report-issue-modal">
-        Report Issue
-    </button>
-{% endif %}
-
-
+{% if show_publish %}<input type="submit" value="{% trans 'Publish' %}" class="btn btn-default" name="_publish" />{% endif %}
+{% if show_unpublish %}<input type="submit" value="{% trans 'Unpublish' %}" class="btn btn-default" name="_unpublish" />{% endif %}
 </div>
 <div class="spacer"></div>
 
@@ -49,10 +43,6 @@
   </div>
 </div>
 {% endif %}
-
-
-{# Modal used for report inappropriate#}
-<div class="modal fade" id="report-issue-modal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true"></div>
 
 
 {#Disable reject button if not enough characters in rejection message#}

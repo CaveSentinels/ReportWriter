@@ -2,7 +2,6 @@
 '''
 SENDER_EMAIL = "reportwritingapplication@gmail.com"
 REPORT_ACCEPTED_SUBJECT = "Your Report has been accepted"
-REPORT_APPROVED_SUBJECT = "A report has been reviewed and approved"
 ACCEPTED = "accepted"
 REVIEWER = "reviewer"
 REJECTED = "rejected"

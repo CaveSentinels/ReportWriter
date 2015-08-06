@@ -7,7 +7,7 @@
                     aria-hidden="true">×</span></button>
             <h4 class="modal-title">Report {{ usecase.name }}</h4>
         </div>
-        <form class="form-horizontal" enctype="multipart/form-data" action="{% url 'admin:report_issuereport_add_report' %}" method="post" novalidate>
+        <form class="form-horizontal" enctype="multipart/form-data" action="{% url 'report:process_issue_report' %}" method="post" novalidate>
             <div class="modal-body">
                 {% csrf_token %}
                 <input id="id_report" name="report" value="{{ report.id }}" hidden="hidden"/>
@@ -54,8 +54,6 @@
         var submit_button = container.find('#report_button');
         var duplicate_report = container.find('#id_report_duplicate');
         var duplicate_report_container = container.find('#duplicate-container');
-
-        debugger;
 
         {# Handle disabling the submit button based on type choice and hiding/showing the duplicate use case selection #}
         type.on('change', function(e){

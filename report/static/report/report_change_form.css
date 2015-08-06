@@ -1,7 +1,11 @@
 #muo-container {
     height: 400px;
-    border: double;
+    border: 1px solid ;
     border-color: #d2d6de;
+}
+
+#muo-container label {
+    color: #555;
 }
 
 #muo-container .muo-title-header {
@@ -9,30 +13,39 @@
     text-align: center;
     margin: 0px;
     padding-bottom: 0px;
+    background-color: #fff;
+    display: block;
 }
+
+#muo-container .slim-scroll-div, .muo-search-container .fat-scroll-div{
+    height: 90%;
+    position: relative;
+    border-collapse: collapse;
+    overflow-y: scroll;
+    overflow-x:hidden;
+    border-bottom: 1px solid #e3e3e3;
+}
+
 
 #muo-container .slim-scroll-div {
     float: left;
-    position: relative;
-    height: 90%;
     width: 35%;
-    overflow-y: scroll;
-    overflow-x:hidden;
     margin-top: 0px;
-    border-right: thin double;
-    border-bottom: thin double;
-    border-color: #e7eaec;
 }
 
 #muo-container .fat-scroll-div {
     float: right;
-    position: relative;
-    height: 90%;
     width: 65%;
-    overflow-y: scroll;
-    overflow-x:hidden;
     background-color: #ecf0f5;
     margin-bottom: 0px;
+    border-left: 1px solid #e3e3e3;
+
+}
+
+#muo-container .misuse-case-container {
+    border-bottom: thin double;
+    border-color: #e7eaec;
+    padding-top: 15px;
 }
 
 /*.misuse-case-container {*/
@@ -43,14 +56,21 @@
 
 .misuse-case-container:hover,
     .muo-search-container .misuse-case-container.selected {
-    background-color: #ecf0f5;
+    background-color: #f3f3f4;
     cursor: pointer;
+}
+
+.misuse-case-container .muo_see_more_div {
+    margin-bottom: 5px;
+    margin-top: -20px;
 }
 
 .misuse-case-header, .use-case-header{
     padding: 15px;
     padding-top: 0px;
 }
+
+
 
 .usecase-footer {
     height: 20px;
@@ -66,7 +86,7 @@
 }
 
 .use-case-container {
-    width: 97%;
+    width: calc(100% - 20px);
     margin: 10px;
     padding: 15px 15px 0 15px;
     background-color: white;
@@ -98,7 +118,7 @@
 
 .use-case-container:hover,
     .use-case-container.selected {
-    background-color: #ecf0f5;
+    background-color: #f3f3f4;
     cursor: pointer;
 }
 
