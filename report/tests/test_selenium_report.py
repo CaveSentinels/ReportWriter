@@ -10,12 +10,36 @@ from selenium.webdriver.support.select import Select
 from register.tests import RegisterHelper
 from report.models import Report
 from report.models import IssueReport, CWE
+from django.test import LiveServerTestCase
 
 
 class ReportTestBase(StaticLiveServerTestCase):
 
     # The URLs of the Report-related pages.
     PAGE_URL_MUO_HOME = "/app/report/report/"
+
+    # Values to be entered on the input fields
+    INPUT_TEXT_VALUES = {
+        'title': 'Authentication Bypass',
+        'description': 'Authentication Bypass happened by spoofing. Somebody logged in to our system by back door',
+        'misuse_case_description': 'misuse_case_description',
+        'misuse_case_primary_actor': 'misuse_case_primary_actor',
+        'misuse_case_secondary_actor': 'misuse_case_secondary_actor',
+        'misuse_case_precondition': 'misuse_case_precondition',
+        'misuse_case_flow_of_events': 'misuse_case_flow_of_events',
+        'misuse_case_postcondition': 'misuse_case_postcondition',
+        'misuse_case_assumption': 'misuse_case_assumption',
+        'misuse_case_source': 'misuse_case_source',
+        'use_case_description': 'use_case_description',
+        'use_case_primary_actor': 'use_case_primary_actor',
+        'use_case_secondary_actor': 'use_case_secondary_actor',
+        'use_case_precondition': 'use_case_precondition',
+        'use_case_flow_of_events': 'use_case_flow_of_events',
+        'use_case_postcondition': 'use_case_postcondition',
+        'use_case_assumption': 'use_case_assumption',
+        'use_case_source': 'use_case_source',
+        'osr': 'overlooked security requirement'
+    }
 
     def setUp(self):
         # Create test data.
@@ -64,6 +88,31 @@ class ReportTestBase(StaticLiveServerTestCase):
             return False
         except NoSuchElementException:
             return True
+
+
+    def fill_muo_fields(self):
+        # Set the misuse case fields
+        self.browser.find_element_by_id('id_misuse_case_description').send_keys(self.INPUT_TEXT_VALUES['misuse_case_description'])
+        self.browser.find_element_by_id('id_misuse_case_primary_actor').send_keys(self.INPUT_TEXT_VALUES['misuse_case_primary_actor'])
+        self.browser.find_element_by_id('id_misuse_case_secondary_actor').send_keys(self.INPUT_TEXT_VALUES['misuse_case_secondary_actor'])
+        self.browser.find_element_by_id('id_misuse_case_precondition').send_keys(self.INPUT_TEXT_VALUES['misuse_case_precondition'])
+        self.browser.find_element_by_id('id_misuse_case_flow_of_events').send_keys(self.INPUT_TEXT_VALUES['misuse_case_flow_of_events'])
+        self.browser.find_element_by_id('id_misuse_case_postcondition').send_keys(self.INPUT_TEXT_VALUES['misuse_case_postcondition'])
+        self.browser.find_element_by_id('id_misuse_case_assumption').send_keys(self.INPUT_TEXT_VALUES['misuse_case_assumption'])
+        self.browser.find_element_by_id('id_misuse_case_source').send_keys(self.INPUT_TEXT_VALUES['misuse_case_source'])
+
+        # Set the use case fields
+        self.browser.find_element_by_id('id_use_case_description').send_keys(self.INPUT_TEXT_VALUES['use_case_description'])
+        self.browser.find_element_by_id('id_use_case_primary_actor').send_keys(self.INPUT_TEXT_VALUES['use_case_primary_actor'])
+        self.browser.find_element_by_id('id_use_case_secondary_actor').send_keys(self.INPUT_TEXT_VALUES['use_case_secondary_actor'])
+        self.browser.find_element_by_id('id_use_case_precondition').send_keys(self.INPUT_TEXT_VALUES['use_case_precondition'])
+        self.browser.find_element_by_id('id_use_case_flow_of_events').send_keys(self.INPUT_TEXT_VALUES['use_case_flow_of_events'])
+        self.browser.find_element_by_id('id_use_case_postcondition').send_keys(self.INPUT_TEXT_VALUES['use_case_postcondition'])
+        self.browser.find_element_by_id('id_use_case_assumption').send_keys(self.INPUT_TEXT_VALUES['use_case_assumption'])
+        self.browser.find_element_by_id('id_use_case_source').send_keys(self.INPUT_TEXT_VALUES['use_case_source'])
+
+        # Set the osr fields
+        self.browser.find_element_by_id('id_osr').send_keys(self.INPUT_TEXT_VALUES['osr'])
 
     def test_point_01_ui_check_open_report(self):
         """
@@ -201,18 +250,102 @@ class ReportTestBase(StaticLiveServerTestCase):
         self.assertEqual(btn_save, False)
 
 
+    def test_point_01_ui_check_create_new_report_form(self):
+
+        self.browser.get("%s%s" % (self.live_server_url, self.PAGE_URL_MUO_HOME ))
+        self.browser.maximize_window()
+
+        # Click Add Report button
+        add_report_button = self.browser.find_element_by_xpath('//*[@href="/app/report/report/add/"]')
+        add_report_button.click()
+
+        # Verify that name field is disabled
+        is_enabled = self.browser.find_element_by_id('id_name').is_enabled()
+        self.assertEqual(is_enabled, False)
+
+        # Verify that status field is disabled
+        is_enabled = self.browser.find_element_by_id('id_status').is_enabled()
+        self.assertEqual(is_enabled, False)
+
+        # Verify that Title field is enabled
+        is_enabled = self.browser.find_element_by_id('id_title').is_enabled()
+        self.assertEqual(is_enabled, True)
+
+        # Verify that Description field is enabled
+        is_enabled = self.browser.find_element_by_id('id_description').is_enabled()
+        self.assertEqual(is_enabled, True)
+
+        # Verify that CWEs field is enabled
+        is_enabled = self.browser.find_element_by_class_name('select2-search__field').is_enabled()
+        self.assertEqual(is_enabled, True)
+
+        # Verify that Suggest CWEs button is enabled
+        is_enabled = self.browser.find_element_by_id('cwe-suggestion-button').is_enabled()
+        self.assertEqual(is_enabled, True)
+
+        # Verify that Custom Misuse Case button is enabled
+        is_enabled = self.browser.find_element_by_id('misusecase-custom').is_enabled()
+        self.assertEqual(is_enabled, True)
+
+        # Verify that Suggest Misuse Case button is enabled
+        is_enabled = self.browser.find_element_by_id('misusecase-suggestion').is_enabled()
+        self.assertEqual(is_enabled, True)
 
 
+    def test_point_02_ui_check_create_new_report_form(self):
+
+        self.browser.get("%s%s" % (self.live_server_url, self.PAGE_URL_MUO_HOME ))
+        self.browser.maximize_window()
+
+        # Click Add Report button
+        add_report_button = self.browser.find_element_by_xpath('//*[@href="/app/report/report/add/"]')
+        add_report_button.click()
+
+        # Enter the title
+        title_field = self.browser.find_element_by_id('id_title')
+        title_field.send_keys(self.INPUT_TEXT_VALUES['title'])
+
+        # Enter the Description
+        description_field = self.browser.find_element_by_id('id_description')
+        description_field.send_keys(self.INPUT_TEXT_VALUES['description'])
+
+        # click save button
+        save_button = self.browser.find_element_by_xpath('//*[@name="_save"]')
+        save_button.click()
+
+        # an error alert should be shown
+        is_error_present = self.browser.find_element_by_class_name('alert-danger') > 0
+        self.assertEqual(is_error_present, 1)
 
 
+    def test_point_03_ui_check_create_new_report_form(self):
 
+        self.browser.get("%s%s" % (self.live_server_url, self.PAGE_URL_MUO_HOME ))
+        self.browser.maximize_window()
 
+        # Click Add Report button
+        add_report_button = self.browser.find_element_by_xpath('//*[@href="/app/report/report/add/"]')
+        add_report_button.click()
 
+        # Enter the title
+        title_field = self.browser.find_element_by_id('id_title')
+        title_field.send_keys(self.INPUT_TEXT_VALUES['title'])
 
+        # Enter the Description
+        description_field = self.browser.find_element_by_id('id_description')
+        description_field.send_keys(self.INPUT_TEXT_VALUES['description'])
 
+        # Click write my own misuse case and use case button
+        write_my_own_muo_button = self.browser.find_element_by_id('misusecase-custom')
+        write_my_own_muo_button.click()
 
+        # Fill MUO fields
+        self.fill_muo_fields()
 
+        # click save button
+        save_button = self.browser.find_element_by_xpath('//*[@name="_save"]')
+        save_button.click()
 
-
-
-
+        # an error alert should be shown
+        is_error_present = self.browser.find_element_by_class_name('alert-danger') > 0
+        self.assertEqual(is_error_present, 1)
