@@ -7,10 +7,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
-from base.admin import BaseAdmin
 
 
-class EmailAddressAdmin(BaseAdmin):
+class EmailAddressAdmin(admin.ModelAdmin):
     list_display = ('email', 'user', 'primary', 'verified', 'admin_approval')
     list_filter = ('primary', 'verified', 'admin_approval')
     search_fields = ['']
@@ -32,6 +31,7 @@ class EmailAddressAdmin(BaseAdmin):
 
         # Get the metadata about self (it tells you app and current model)
         opts = self.model._meta
+        msg = None
 
         # Get the primary key of the model object i.e. Issue Report
         pk_value = obj._get_pk_val()
@@ -63,7 +63,8 @@ class EmailAddressAdmin(BaseAdmin):
             msg = e.message
             self.message_user(request, msg, messages.ERROR)
 
-        self.message_user(request, msg, messages.SUCCESS)
+        if msg:
+            self.message_user(request, msg, messages.SUCCESS)
         return HttpResponseRedirect(redirect_url)
 
 

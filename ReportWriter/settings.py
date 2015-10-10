@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'report_mailer',
     'user_profile',
+    'mailer',
 )
 
 # Email settings

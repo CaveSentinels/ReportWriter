@@ -1,6 +1,6 @@
 import threading
-from django.core.mail import send_mail
-from django.template.loader import get_template
+from django.core.mail import send_mail, get_connection, EmailMultiAlternatives
+from django.template.loader import get_template, render_to_string
 from django.template import Context
 from django.contrib.auth.models import User, Permission
 from django.db.models import Q
@@ -22,28 +22,15 @@ They create the email body by fetching the parameters and send the email
 @receiver(report_accepted)
 def on_report_accepted(sender, instance, **kwargs):
     if instance.created_by and instance.created_by.mailer_profile.notify_report_accepted:
-        subject = constants.REPORT_ACCEPTED_SUBJECT
-        action = constants.ACCEPTED
-        notify_owner(instance, subject, action)
+        message = "Your %s has been accepted" % instance.name
+        notify_owner(instance, message)
 
 # This method will send an email when a Report gets rejected
 @receiver(report_rejected)
 def on_report_rejected(sender, instance, **kwargs):
     if instance.created_by and instance.created_by.mailer_profile.notify_report_rejected:
-        subject = constants.REPORT_REJECTED_SUBJECT
-        action = constants.REJECTED
-        notify_owner(instance, subject, action)
-
-
-# This method will send an email when the Report is commented upon
-@receiver(comment_was_posted)
-def on_muo_commented(sender, comment, request, **kwargs):
-    if comment.content_type == ContentType.objects.get_for_model(Report):
-        instance = comment.content_object
-        if instance.created_by and instance.created_by.mailer_profile.notify_muo_commented:
-            subject = constants.REPORT_COMMENTED_SUBJECT
-            action = constants.COMMENTED
-            notify_owner(instance, subject, action)
+        message = "Your %s has been rejected" % instance.name
+        notify_owner(instance, message)
 
 
 # This method will send an email when a Report is marked as inappropriate/duplicate
@@ -56,10 +43,8 @@ def on_report_inappropriate(sender, instance, created=False, **kwargs):
         # The user might have the permission either as a user or in a group of which he is a part, so check both
         users = User.objects.filter(mailer_profile__notify_report_inappropriate=True)\
                             .filter(Q(groups__permissions__in=perm) | Q(user_permissions__in=perm)).distinct()
-        emails = [user.email for user in users]
-        subject = constants.REPORT_INAPPROPRIATE_SUBJECT
-        action = constants.INAPPROPRIATE
-        notify_reviewers(instance.report, subject, action, emails)
+        message = "%s has been marked as inappropriate" % instance.report.name
+        notify_reviewers(instance.report, message, users)
 
 
 # This method will send an email when the Report is submitted for review. It will notify the reviewers
@@ -71,11 +56,8 @@ def on_report_submitted_for_review(sender,instance, **kwargs):
     # The user might have the permission either as a user or in a group of which he is a part, so check both
     users = User.objects.filter(mailer_profile__notify_report_submitted_for_review=True)\
                         .filter(Q(groups__permissions__in=perm) | Q(user_permissions__in=perm)).distinct()
-    emails = [user.email for user in users]
-    subject = constants.REPORT_SUBMITTED_FOR_REVIEW_SUBJECT
-    action = constants.SUBMITTED
-    notify_reviewers(instance, subject, action, emails)
-
+    message = "%s has been submitted for review" % instance.name
+    notify_reviewers(instance, message, users)
 
 
 
@@ -87,52 +69,52 @@ def on_report_saved(sender,instance, **kwargs):
     pass
 
 
-def notify_owner(instance, subject, action):
-    thread = threading.Thread(target=_notify_owner, args=(instance, subject, action))
+def notify_owner(instance, message):
+    thread = threading.Thread(target=_notify_owner, args=(instance, message))
     thread.start()
 
-def _notify_owner(instance, subject, action):
+
+def _notify_owner(instance, message):
     """
     This method is called when we have to send the email after fixing all the parameters
     """
     user = instance.created_by
-    report_name = instance.name
-    send_mail(subject, get_template('mailer/report_action.html').render(
+    body = get_template('mailer/base_site.html').render(
         Context({
-            'full_name': user.get_full_name() or user.username,
-            'report_name': report_name,
-            'action': action,
+            'username': user.get_full_name() or user.username,
+            'body': message,
         })
-    ), SENDER_EMAIL, [user.email], fail_silently=True)
+    )
+    send_mail(message, message, SENDER_EMAIL, [user.email], html_message=body, fail_silently=True)
 
 
-
-def notify_reviewers(instance, subject, action, emails):
-    thread = threading.Thread(target=_notify_reviewers, args=(instance, subject, action, emails))
+def notify_reviewers(instance, message, users):
+    thread = threading.Thread(target=_notify_reviewers, args=(instance, message, users))
     thread.start()
 
-def _notify_reviewers(instance, subject, action, emails):
+
+def _notify_reviewers(instance, message, users):
     """
     This method is called when we have to send bulk email to many recipients
     """
-    if emails:
-        send_mail(subject, get_template('mailer/report_action_bulk.html').render(
-            Context({
-                'report_name': instance.name,
-                'action': action,
-                })
-            ), SENDER_EMAIL, emails, fail_silently=True)
+    connection = get_connection()
+    connection.open()
+    messages = list()
 
+    for user in users:
+        if user.email:
+            context = {
+                'username': user.get_full_name() or user.username,
+                'body': message,
+            }
+            subject, from_email, to = message, SENDER_EMAIL, user.email
+            text_content = message
+            html_content = render_to_string('mailer/base_site.html', context)
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+            msg.attach_alternative(html_content, "text/html")
+            messages.append(msg)
 
-
-
-
-
-
-
-
-
-
-
+    connection.send_messages(messages)
+    connection.close()
 
 
