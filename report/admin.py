@@ -113,8 +113,20 @@ class ReportAdmin(BaseAdmin):
     form = ReportForm
     exclude = ['created_by', 'created_at', 'modified_by', 'modified_at']
     search_fields = ['title', 'status', 'custom']
-    list_display = ['name', 'status']
+    list_display = ['name', 'created_by', 'status']
     raw_id_fields = ['cwes']
+
+
+    def get_actions(self, request):
+        """
+        Overriding the method in order to disable the delete selected (and bulk delete) option the
+        changelist form
+        """
+        actions = super(ReportAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 
     def is_readonly(self, request, obj):
         '''
